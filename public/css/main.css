@@ -719,3 +719,26 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   .article-main-title { font-size: 1.35rem; }
   .footer-grid { grid-template-columns: 1fr; }
 }
+
+/* ══════════════════════════════════════
+   CATEGORY HERO
+══════════════════════════════════════ */
+.cat-hero {
+  background: linear-gradient(135deg, var(--navy) 0%, #2d3f6b 100%);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  color: white;
+  margin-bottom: 1.5rem;
+}
+.cat-hero-icon  { font-size: 3rem; margin-bottom: .5rem; }
+.cat-hero-title { font-size: 1.8rem; font-weight: 900; margin-bottom: .5rem; }
+.cat-hero-desc  { opacity: .8; font-size: .95rem; max-width: 500px; margin: 0 auto .75rem; line-height: 1.7; }
+.cat-hero-count {
+  display: inline-block;
+  background: rgba(255,255,255,.15);
+  padding: .3rem .9rem;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 600;
+}

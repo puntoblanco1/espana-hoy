@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اتصل بنا | إسبانيا اليوم</title>
+  <meta name="description" content="تواصل مع فريق إسبانيا اليوم — لديك خبر، تصحيح، أو استفسار؟">
+  <meta name="theme-color" content="#C0272D">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .contact-wrap { max-width: 700px; margin: 3rem auto 5rem; }
+    .contact-title { font-size: 2rem; font-weight: 900; color: var(--navy); margin-bottom: .5rem; }
+    .contact-sub { color: var(--text-muted); margin-bottom: 2.5rem; font-size: 1.05rem; }
+    .contact-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2.5rem; }
+    .contact-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; box-shadow: var(--shadow-sm); }
+    .contact-card-icon { font-size: 1.8rem; margin-bottom: .5rem; }
+    .contact-card-title { font-weight: 700; font-size: .9rem; color: var(--navy); margin-bottom: .25rem; }
+    .contact-card-val { font-size: .82rem; color: var(--text-muted); }
+    .contact-form { background: var(--bg-card); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm); }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-weight: 700; margin-bottom: .4rem; font-size: .9rem; color: var(--navy); }
+    .form-input, .form-textarea, .form-select {
+      width: 100%; padding: .75rem 1rem; border: 1.5px solid var(--border);
+      border-radius: var(--radius); font-family: var(--font-main); font-size: .95rem;
+      background: var(--bg); color: var(--text); transition: var(--transition);
+      direction: rtl;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--red); background: white; }
+    .form-textarea { min-height: 150px; resize: vertical; }
+    .form-submit { background: var(--red); color: white; padding: .85rem 2.5rem; border-radius: 999px; font-size: 1rem; font-weight: 700; width: 100%; transition: var(--transition); cursor: pointer; border: none; font-family: var(--font-main); }
+    .form-submit:hover { background: var(--red-dark); }
+    .success-msg { display: none; background: #d1fae5; color: #065f46; padding: 1rem 1.25rem; border-radius: var(--radius); margin-top: 1rem; font-weight: 600; text-align: center; }
+    @media(max-width:600px) { .contact-cards { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo">
+        <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:.4rem">
+          <span class="logo-ar">إسبانيا اليوم</span>
+          <span class="logo-divider">|</span>
+          <span class="logo-es">España Hoy</span>
+        </a>
+      </div>
+      <nav class="main-nav" id="mainNav">
+        <a href="/" class="nav-link">الرئيسية</a>
+        <a href="/category/immigration" class="nav-link">الهجرة</a>
+        <a href="/category/jobs" class="nav-link">وظائف</a>
+        <a href="/category/housing" class="nav-link">السكن</a>
+        <a href="/about" class="nav-link">عن الموقع</a>
+        <a href="/contact" class="nav-link active">اتصل بنا</a>
+      </nav>
+      <button class="burger" id="burger"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="contact-wrap">
+      <h1 class="contact-title">📩 اتصل بنا</h1>
+      <p class="contact-sub">لديك خبر، تصحيح، اقتراح، أو استفسار عن الإعلان؟ فريقنا يرد خلال 24 ساعة.</p>
+
+      <div class="contact-cards">
+        <div class="contact-card">
+          <div class="contact-card-icon">📧</div>
+          <div class="contact-card-title">البريد الإلكتروني</div>
+          <div class="contact-card-val">info@espana-hoy.com</div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-icon">📱</div>
+          <div class="contact-card-title">واتساب</div>
+          <div class="contact-card-val">متاح قريباً</div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-icon">⏱️</div>
+          <div class="contact-card-title">وقت الرد</div>
+          <div class="contact-card-val">خلال 24 ساعة</div>
+        </div>
+      </div>
+
+      <div class="contact-form">
+        <div class="form-group">
+          <label class="form-label" for="name">الاسم الكامل *</label>
+          <input class="form-input" type="text" id="name" placeholder="اكتب اسمك هنا">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">البريد الإلكتروني *</label>
+          <input class="form-input" type="email" id="email" placeholder="example@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="subject">الموضوع</label>
+          <select class="form-select" id="subject">
+            <option value="">اختر موضوع الرسالة</option>
+            <option value="news-tip">إرسال خبر أو معلومة</option>
+            <option value="correction">تصحيح معلومة</option>
+            <option value="ads">الإعلان على الموقع</option>
+            <option value="partnership">شراكة أو تعاون</option>
+            <option value="suggestion">اقتراح موضوع</option>
+            <option value="other">أخرى</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="message">الرسالة *</label>
+          <textarea class="form-textarea" id="message" placeholder="اكتب رسالتك هنا..."></textarea>
+        </div>
+        <button class="form-submit" onclick="sendForm()">إرسال الرسالة ✉️</button>
+        <div class="success-msg" id="successMsg">✅ تم إرسال رسالتك بنجاح! سنرد عليك قريباً.</div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border:none;padding:1.5rem 0">
+      <p>© 2024 إسبانيا اليوم | España Hoy</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('burger')?.addEventListener('click', () => {
+    document.getElementById('mainNav')?.classList.toggle('open');
+  });
+
+  function sendForm() {
+    const name    = document.getElementById('name').value.trim();
+    const email   = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
+    if (!name || !email || !message) {
+      alert('من فضلك أكمل الحقول المطلوبة');
+      return;
+    }
+    // Show success (in production connect to email service like Formspree)
+    document.getElementById('successMsg').style.display = 'block';
+    document.getElementById('name').value    = '';
+    document.getElementById('email').value   = '';
+    document.getElementById('message').value = '';
+    setTimeout(() => document.getElementById('successMsg').style.display = 'none', 5000);
+  }
+</script>
+</body>
+</html>
