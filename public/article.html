@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">إسبانيا اليوم</title>
+  <meta name="description" id="metaDesc" content="">
+  <meta property="og:title" id="ogTitle" content="">
+  <meta property="og:description" id="ogDesc" content="">
+  <meta property="og:image" id="ogImage" content="">
+  <meta property="og:type" content="article">
+  <meta name="theme-color" content="#C0272D">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo">
+        <a href="/" style="text-decoration:none;color:inherit">
+          <span class="logo-ar">إسبانيا اليوم</span>
+          <span class="logo-divider">|</span>
+          <span class="logo-es">España Hoy</span>
+        </a>
+      </div>
+      <nav class="main-nav" id="mainNav">
+        <a href="/" class="nav-link">الرئيسية</a>
+        <a href="/category/immigration" class="nav-link">الهجرة</a>
+        <a href="/category/jobs" class="nav-link">وظائف</a>
+        <a href="/category/housing" class="nav-link">السكن</a>
+        <a href="/category/residency" class="nav-link">الإقامة</a>
+        <a href="/category/education" class="nav-link">التعليم</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="القائمة">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="article-page">
+  <div class="container">
+    <div class="content-grid">
+
+      <article class="article-col" id="articleBody">
+
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" id="breadcrumb">
+          <a href="/">الرئيسية</a>
+          <span>›</span>
+          <span id="breadCat">جاري التحميل...</span>
+        </nav>
+
+        <!-- Ad top -->
+        <div class="ad-box ad-article-top">
+          <span class="ad-label">إعلان</span>
+          <div class="ad-inner" id="adArticleTop"></div>
+        </div>
+
+        <!-- Article header -->
+        <div class="article-header" id="articleHeader">
+          <div class="skeleton" style="height:2rem;width:80%;margin-bottom:1rem;border-radius:8px"></div>
+          <div class="skeleton" style="height:1rem;width:60%;margin-bottom:2rem;border-radius:8px"></div>
+          <div class="skeleton" style="height:400px;border-radius:12px;margin-bottom:2rem"></div>
+        </div>
+
+        <!-- Article content -->
+        <div class="article-content" id="articleContent"></div>
+
+        <!-- FAQ -->
+        <div class="faq-section" id="faqSection" style="display:none">
+          <h2 class="faq-title">أسئلة شائعة</h2>
+          <div id="faqList"></div>
+        </div>
+
+        <!-- Ad middle -->
+        <div class="ad-box ad-article-mid">
+          <span class="ad-label">إعلان</span>
+          <div class="ad-inner" id="adArticleMid"></div>
+        </div>
+
+        <!-- Share -->
+        <div class="share-box">
+          <span class="share-label">شارك المقال:</span>
+          <button class="share-btn fb" onclick="shareFacebook()">فيسبوك</button>
+          <button class="share-btn wa" onclick="shareWhatsApp()">واتساب</button>
+          <button class="share-btn copy" onclick="copyLink()">نسخ الرابط</button>
+        </div>
+
+        <!-- Language toggle -->
+        <div class="lang-toggle" id="langToggle" style="display:none">
+          <span>اقرأ المقال بـ:</span>
+          <button class="lang-btn active" id="btnAr" onclick="switchLang('ar')">العربية</button>
+          <button class="lang-btn" id="btnEs" onclick="switchLang('es')">Español</button>
+        </div>
+
+      </article>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="ad-box ad-sidebar">
+          <span class="ad-label">إعلان</span>
+          <div class="ad-inner" id="adSidebar1"></div>
+        </div>
+        <div class="sidebar-widget">
+          <h3 class="widget-title">مقالات ذات صلة</h3>
+          <div id="relatedArticles"></div>
+        </div>
+        <div class="sidebar-widget">
+          <h3 class="widget-title">روابط مهمة</h3>
+          <ul class="quick-links">
+            <li><a href="https://sede.administracionespublica.gob.es" target="_blank" rel="noopener">🏛️ موقع الإدارة الإسبانية</a></li>
+            <li><a href="https://extranjeros.inclusion.gob.es" target="_blank" rel="noopener">📋 شؤون الأجانب</a></li>
+            <li><a href="https://www.sepe.es" target="_blank" rel="noopener">💼 SEPE - التشغيل</a></li>
+            <li><a href="https://www.seg-social.es" target="_blank" rel="noopener">🏥 الضمان الاجتماعي</a></li>
+          </ul>
+        </div>
+        <div class="ad-box ad-sidebar">
+          <span class="ad-label">إعلان</span>
+          <div class="ad-inner" id="adSidebar2"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo footer-logo">
+          <span class="logo-ar">إسبانيا اليوم</span>
+          <span class="logo-divider">|</span>
+          <span class="logo-es">España Hoy</span>
+        </div>
+        <p class="footer-desc">منصتك العربية الأولى لمتابعة أخبار إسبانيا.</p>
+      </div>
+      <div class="footer-links">
+        <h4>التصنيفات</h4>
+        <ul>
+          <li><a href="/category/immigration">الهجرة والإقامة</a></li>
+          <li><a href="/category/jobs">الوظائف والرواتب</a></li>
+          <li><a href="/category/housing">السكن والعقارات</a></li>
+          <li><a href="/category/education">التعليم</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 إسبانيا اليوم | España Hoy</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/article.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إسبانيا اليوم | España Hoy - أخبار إسبانيا بالعربية</title>
+  <meta name="description" content="أحدث أخبار إسبانيا للعرب - هجرة، إقامة، وظائف، سكن، تعليم وكل ما يخص العرب في إسبانيا">
+  <meta property="og:title" content="إسبانيا اليوم | España Hoy">
+  <meta property="og:description" content="أحدث أخبار إسبانيا للعرب - هجرة، إقامة، وظائف، سكن">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#C0272D">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-ar">إسبانيا اليوم</span>
+        <span class="logo-divider">|</span>
+        <span class="logo-es">España Hoy</span>
+      </div>
+      <nav class="main-nav" id="mainNav">
+        <a href="/" class="nav-link active">الرئيسية</a>
+        <a href="/category/immigration" class="nav-link">الهجرة</a>
+        <a href="/category/jobs" class="nav-link">وظائف</a>
+        <a href="/category/housing" class="nav-link">السكن</a>
+        <a href="/category/residency" class="nav-link">الإقامة</a>
+        <a href="/category/education" class="nav-link">التعليم</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="القائمة">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ── BREAKING TICKER ── -->
+<div class="ticker-wrap" id="tickerWrap">
+  <div class="ticker-label">عاجل</div>
+  <div class="ticker-track" id="ticker">
+    <span>جاري تحميل آخر الأخبار...</span>
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<section class="hero" id="heroSection">
+  <div class="container">
+    <div class="hero-grid" id="heroGrid">
+      <div class="hero-main skeleton" id="heroMain"></div>
+      <div class="hero-side" id="heroSide">
+        <div class="hero-side-card skeleton"></div>
+        <div class="hero-side-card skeleton"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CATEGORIES ── -->
+<section class="categories-bar">
+  <div class="container">
+    <div class="cats-scroll" id="catsScroll">
+      <!-- JS populated -->
+    </div>
+  </div>
+</section>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="main-content">
+  <div class="container">
+    <div class="content-grid">
+
+      <!-- Articles feed -->
+      <div class="articles-col">
+        <div class="section-header">
+          <h2 class="section-title" id="feedTitle">آخر الأخبار</h2>
+          <div class="sort-tabs">
+            <button class="sort-btn active" data-sort="latest">الأحدث</button>
+            <button class="sort-btn" data-sort="popular">الأكثر قراءة</button>
+          </div>
+        </div>
+        <div class="articles-grid" id="articlesGrid">
+          <!-- JS populated -->
+        </div>
+        <div class="load-more-wrap">
+          <button class="load-more-btn" id="loadMoreBtn">تحميل المزيد</button>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Ad placeholder -->
+        <div class="ad-box ad-sidebar">
+          <span class="ad-label">إعلان</span>
+          <div class="ad-inner" id="adSidebar1"></div>
+        </div>
+
+        <!-- Popular articles -->
+        <div class="sidebar-widget">
+          <h3 class="widget-title">الأكثر قراءة</h3>
+          <div id="popularList"></div>
+        </div>
+
+        <!-- Quick links -->
+        <div class="sidebar-widget">
+          <h3 class="widget-title">روابط مهمة</h3>
+          <ul class="quick-links">
+            <li><a href="https://sede.administracionespublica.gob.es" target="_blank" rel="noopener">🏛️ موقع الإدارة الإسبانية</a></li>
+            <li><a href="https://extranjeros.inclusion.gob.es" target="_blank" rel="noopener">📋 شؤون الأجانب</a></li>
+            <li><a href="https://www.sepe.es" target="_blank" rel="noopener">💼 SEPE - التشغيل</a></li>
+            <li><a href="https://www.seg-social.es" target="_blank" rel="noopener">🏥 الضمان الاجتماعي</a></li>
+            <li><a href="https://www.idealista.com" target="_blank" rel="noopener">🏠 Idealista - عقارات</a></li>
+          </ul>
+        </div>
+
+        <!-- Ad placeholder 2 -->
+        <div class="ad-box ad-sidebar">
+          <span class="ad-label">إعلان</span>
+          <div class="ad-inner" id="adSidebar2"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<!-- ── IN-FEED AD ── -->
+<div class="ad-box ad-leaderboard container">
+  <span class="ad-label">إعلان</span>
+  <div class="ad-inner" id="adLeaderboard"></div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo footer-logo">
+          <span class="logo-ar">إسبانيا اليوم</span>
+          <span class="logo-divider">|</span>
+          <span class="logo-es">España Hoy</span>
+        </div>
+        <p class="footer-desc">منصتك العربية الأولى لمتابعة أخبار إسبانيا — هجرة، وظائف، سكن، وكل ما تحتاجه للعيش والنجاح في إسبانيا.</p>
+      </div>
+      <div class="footer-links">
+        <h4>التصنيفات</h4>
+        <ul>
+          <li><a href="/category/immigration">الهجرة والإقامة</a></li>
+          <li><a href="/category/jobs">الوظائف والرواتب</a></li>
+          <li><a href="/category/housing">السكن والعقارات</a></li>
+          <li><a href="/category/education">التعليم</a></li>
+          <li><a href="/category/cost-of-living">تكلفة المعيشة</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>روابط</h4>
+        <ul>
+          <li><a href="/about">عن الموقع</a></li>
+          <li><a href="/contact">اتصل بنا</a></li>
+          <li><a href="/privacy">سياسة الخصوصية</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 إسبانيا اليوم | España Hoy — جميع الحقوق محفوظة</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
