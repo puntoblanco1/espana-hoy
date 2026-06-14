@@ -1,8 +1,11 @@
 const fs   = require('fs');
 const path = require('path');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+// Use Railway persistent volume at /data, fallback to local
+const DATA_DIR = process.env.DATA_DIR || '/data';
 const DB_FILE  = path.join(DATA_DIR, 'db.json');
+
+const HASHTAGS = `\n\n#العرب_في_إسبانيا #إسبانيا_اليوم #الهجرة_إلى_إسبانيا #العرب_في_أوروبا #وظائف_إسبانيا #إقامة_إسبانيا #مهاجرون_عرب #حياة_في_إسبانيا #الجالية_العربية #سكن_إسبانيا #عرب_مدريد #عرب_برشلونة #تعليم_إسبانيا #المغتربون_العرب #هجرة_عربية #España #ArabesEnEspaña #InmigracionEspana #VidaEnEspaña #TrabajoEnEspaña #EspanaHoy`;
 
 function ensureDir() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -44,6 +47,20 @@ function normalizeCategory(cat) {
   return map[cat] || (cat||'local-news').toLowerCase().replace(/\s+/g,'-');
 }
 
+function buildFbPost(article) {
+  const desc = (article.arabic_meta_description || '').split('.')[0];
+  // If AI already generated a post with hashtags, use it
+  if (article.facebook_post_arabic && article.facebook_post_arabic.includes('#العرب')) {
+    return article.facebook_post_arabic;
+  }
+  // Otherwise build one
+  return `${desc}\n\nهل تعرف كيف تستفيد من هذا؟ 🤔🇪🇸\n\n▼ اقرأ الخبر كاملاً في أول تعليق${HASHTAGS}`;
+}
+
+function buildFbComment(article) {
+  return `🔗 اقرأ المقال كاملاً:\nhttps://espana-hoy-production.up.railway.app/article/${article.arabic_slug}\n\nشارك مع أصدقائك ليستفيدوا ❤️\n\n#إسبانيا_اليوم #EspanaHoy`;
+}
+
 // ── Public API ──────────────────────────────────────
 function init() {
   ensureDir();
@@ -67,7 +84,7 @@ function publishArticle(article) {
   const imageUrl = article.image_url ||
     `https://image.pollinations.ai/prompt/${encodeURIComponent(article.image_prompt || article.arabic_title || 'Spain news')}?width=1200&height=630&nologo=true&seed=${id}`;
 
-  // Remove old duplicate slug if any
+  // Remove duplicates
   db.articles = db.articles.filter(a => a.arabic_slug !== slug_ar && a.spanish_slug !== slug_es);
 
   const record = {
@@ -94,12 +111,15 @@ function publishArticle(article) {
     views:       0,
     fb_post_id:  null,
     fb_published:false,
+    // Save AI-generated FB content with hashtags
+    facebook_post_arabic:   article.facebook_post_arabic   || '',
+    facebook_first_comment: article.facebook_first_comment || '',
     status:      'published',
     created_at:  new Date().toISOString(),
     published_at:new Date().toISOString()
   };
 
-  db.articles.unshift(record); // newest first
+  db.articles.unshift(record);
   save(db);
   return id;
 }
@@ -110,12 +130,7 @@ function getArticles({ page = 1, category, limit = 12 } = {}) {
   if (category) list = list.filter(a => a.category === category);
   const total = list.length;
   const start = (page - 1) * limit;
-  return {
-    articles: list.slice(start, start + limit),
-    total,
-    page,
-    pages: Math.ceil(total / limit)
-  };
+  return { articles: list.slice(start, start + limit), total, page, pages: Math.ceil(total / limit) };
 }
 
 function getArticleBySlug(slug) {
@@ -135,14 +150,12 @@ function getPendingFacebookPosts() {
     .filter(a => a.status === 'published' && !a.fb_published)
     .slice(0, 3)
     .map(a => ({
-      id: a.id,
-      arabic_title: a.arabic_title,
-      arabic_slug:  a.arabic_slug,
-      image_url:    a.image_url,
-      facebook_post_arabic: (a.facebook_post_arabic && a.facebook_post_arabic.includes('#العرب'))
-        ? a.facebook_post_arabic
-        : `${(a.arabic_meta_description||'').split('.')[0]}..\n\nهل تعرف كيف تستفيد من هذا؟ 🤔🇪🇸\n\n▼ اقرأ الخبر كاملاً في أول تعليق\n\n#العرب_في_إسبانيا #إسبانيا_اليوم #الهجرة_إلى_إسبانيا #العرب_في_أوروبا #وظائف_إسبانيا #إقامة_إسبانيا #مهاجرون_عرب #حياة_في_إسبانيا #الجالية_العربية #سكن_إسبانيا #عرب_مدريد #عرب_برشلونة #تعليم_إسبانيا #المغتربون_العرب #هجرة_عربية #España #ArabesEnEspaña #InmigracionEspana #VidaEnEspaña #TrabajoEnEspaña #EspanaHoy`,
-      facebook_first_comment: `🔗 اقرأ المقال كاملاً:\nhttps://espana-hoy-production.up.railway.app/article/${a.arabic_slug}\n\nشارك مع أصدقائك ليستفيدوا ❤️\n\n#إسبانيا_اليوم #EspanaHoy`,
+      id:                    a.id,
+      arabic_title:          a.arabic_title,
+      arabic_slug:           a.arabic_slug,
+      image_url:             a.image_url,
+      facebook_post_arabic:  buildFbPost(a),
+      facebook_first_comment:buildFbComment(a),
       wp_url: `https://espana-hoy-production.up.railway.app/article/${a.arabic_slug}`
     }));
 }
@@ -152,8 +165,8 @@ function markFacebookPublished(fb_post_id, published_at) {
   const unpublished = db.articles.filter(a => !a.fb_published);
   if (unpublished.length > 0) {
     const a = unpublished[0];
-    a.fb_post_id   = fb_post_id;
-    a.fb_published = true;
+    a.fb_post_id      = fb_post_id;
+    a.fb_published    = true;
     a.fb_published_at = published_at || new Date().toISOString();
     save(db);
   }
@@ -185,4 +198,4 @@ function getStats() {
   return { total_articles: published.length, categories, top_viewed: topViewed };
 }
 
-module.exports = { init, savePendingStory, publishArticle, getArticles, getArticleBySlug, incrementViews, getPendingFacebookPosts, markFacebookPublished, getPublishedWithFbIds, saveAnalytics, getStats };
+module.exports = { init, load, save, savePendingStory, publishArticle, getArticles, getArticleBySlug, incrementViews, getPendingFacebookPosts, markFacebookPublished, getPublishedWithFbIds, saveAnalytics, getStats };
