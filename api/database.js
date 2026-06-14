@@ -139,9 +139,11 @@ function getPendingFacebookPosts() {
       arabic_title: a.arabic_title,
       arabic_slug:  a.arabic_slug,
       image_url:    a.image_url,
-      facebook_post_arabic: a.facebook_post_arabic || `📰 ${a.arabic_title}\n\n${a.arabic_meta_description || ''}\n\nما رأيك؟ 👇`,
-      facebook_first_comment: a.facebook_first_comment || 'اقرأ المقال كاملاً 👇',
-      wp_url: `https://espana-hoy.up.railway.app/article/${a.arabic_slug}`
+      facebook_post_arabic: (a.facebook_post_arabic && a.facebook_post_arabic.includes('#العرب'))
+        ? a.facebook_post_arabic
+        : `${(a.arabic_meta_description||'').split('.')[0]}..\n\nهل تعرف كيف تستفيد من هذا؟ 🤔🇪🇸\n\n▼ اقرأ الخبر كاملاً في أول تعليق\n\n#العرب_في_إسبانيا #إسبانيا_اليوم #الهجرة_إلى_إسبانيا #العرب_في_أوروبا #وظائف_إسبانيا #إقامة_إسبانيا #مهاجرون_عرب #حياة_في_إسبانيا #الجالية_العربية #سكن_إسبانيا #عرب_مدريد #عرب_برشلونة #تعليم_إسبانيا #المغتربون_العرب #هجرة_عربية #España #ArabesEnEspaña #InmigracionEspana #VidaEnEspaña #TrabajoEnEspaña #EspanaHoy`,
+      facebook_first_comment: `🔗 اقرأ المقال كاملاً:\nhttps://espana-hoy-production.up.railway.app/article/${a.arabic_slug}\n\nشارك مع أصدقائك ليستفيدوا ❤️\n\n#إسبانيا_اليوم #EspanaHoy`,
+      wp_url: `https://espana-hoy-production.up.railway.app/article/${a.arabic_slug}`
     }));
 }
 
