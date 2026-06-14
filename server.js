@@ -106,3 +106,27 @@ app.listen(PORT, () => {
   console.log(`España Hoy running on port ${PORT}`);
   db.init();
 });
+
+// ── Fix FB posts with hashtags ────────────────────────
+app.post('/webhook/fix-fb-hashtags', (req, res) => {
+  try {
+    const data = db.load ? db.load() : JSON.parse(require('fs').readFileSync(require('path').join(__dirname,'data','db.json'),'utf8'));
+    
+    const hashtags = `\n\n#العرب_في_إسبانيا #إسبانيا_اليوم #الهجرة_إلى_إسبانيا #العرب_في_أوروبا #وظائف_إسبانيا #إقامة_إسبانيا #مهاجرون_عرب #حياة_في_إسبانيا #الجالية_العربية #سكن_إسبانيا #عرب_مدريد #عرب_برشلونة #تعليم_إسبانيا #المغتربون_العرب #هجرة_عربية #España #ArabesEnEspaña #InmigracionEspana #VidaEnEspaña #TrabajoEnEspaña #EspanaHoy`;
+
+    let fixed = 0;
+    (data.articles||[]).forEach(article => {
+      if (!article.arabic_title) return;
+      const desc   = article.arabic_meta_description || '';
+      const teaser = desc.length > 20 ? desc.split('.')[0] : '';
+      article.facebook_post_arabic    = `${teaser}\n\nهل تعرف كيف تستفيد من هذا؟ 🤔🇪🇸\n\n▼ اقرأ الخبر كاملاً في أول تعليق${hashtags}`;
+      article.facebook_first_comment  = `🔗 اقرأ المقال كاملاً:\nhttps://espana-hoy-production.up.railway.app/article/${article.arabic_slug}\n\nشارك مع أصدقائك ليستفيدوا ❤️\n\n#إسبانيا_اليوم #EspanaHoy`;
+      article.fb_published = false;
+      article.fb_post_id   = null;
+      fixed++;
+    });
+
+    require('fs').writeFileSync(require('path').join(__dirname,'data','db.json'), JSON.stringify(data, null, 2));
+    res.json({ success: true, fixed });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
