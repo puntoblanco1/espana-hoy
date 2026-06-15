@@ -1,132 +1,102 @@
-const express     = require('express');
-const cors        = require('cors');
-const compression = require('compression');
-const path        = require('path');
-const db          = require('./api/database');
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const app = express();
 
-const app  = express();
-const PORT = process.env.PORT || 8080;
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const DATA_DIR = '/tmp';
+const DB_PATH = path.join(DATA_DIR, 'db.json');
 
-app.use(compression());
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify({ articles: [] }));
 
-// ── n8n Webhook Receivers ─────────────────────────────
-app.post('/webhook/espana-hoy-stories', (req, res) => {
-  try { res.json({ success: true, id: db.savePendingStory(req.body) }); }
-  catch(e) { res.status(500).json({ error: e.message }); }
+let db = { articles: [] };
+try {
+  db = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+} catch (e) { console.error('DB read error:', e); }
+
+function saveDB() {
+  try { fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2)); } 
+  catch (e) { console.error('DB save error:', e); }
+}
+
+app.use(express.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Allow-Methods', '*');
+  next();
 });
 
-app.post('/webhook/espana-hoy-publish-wp', (req, res) => {
-  try {
-    const id   = db.publishArticle(req.body);
-    const slug = req.body.arabic_slug || id;
-    res.json({ success: true, id, url: `/article/${slug}` });
-  } catch(e) { res.status(500).json({ error: e.message }); }
+// API Routes
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', articles: db.articles.length });
 });
 
-app.get('/webhook/espana-hoy-get-pending', (req, res) => {
-  try { res.json({ posts: db.getPendingFacebookPosts() }); }
-  catch(e) { res.status(500).json({ error: e.message }); }
+app.get('/api/articles', (req, res) => res.json(db.articles));
+
+app.get('/api/articles/:slug', (req, res) => {
+  const article = db.articles.find(a => a.slug === req.params.slug);
+  article ? res.json(article) : res.status(404).json({ error: 'Not found' });
 });
 
-app.post('/webhook/espana-hoy-mark-published', (req, res) => {
-  try { db.markFacebookPublished(req.body.fb_post_id, req.body.published_at); res.json({ success: true }); }
-  catch(e) { res.status(500).json({ error: e.message }); }
+app.post('/api/fix-articles', (req, res) => {
+  if (db.articles.length === 0) {
+    db.articles = [
+      {
+        id: '1', slug: 'spain-minimum-wage-2024',
+        title: 'بشرى للعاملين في إسبانيا: رفع الحد الأدنى للأجور إلى 1134 يورو',
+        category: 'Jobs', excerpt: 'خبر سار لكل العاملين في إسبانيا! 🇪🇸 زيادة رسمية في الحد الأدنى للأجور.',
+        image: 'https://image.pollinations.ai/prompt/Spain%20minimum%20wage%20euro?width=800&height=400&nologo=true',
+        createdAt: new Date().toISOString(), status: 'published', facebookPublished: true
+      },
+      {
+        id: '2', slug: 'spain-cheap-cities-2026',
+        title: 'وداعاً لغلاء مدريد: أرخص 5 مدن للسكن في إسبانيا 2026',
+        category: 'Housing', excerpt: 'هل أسعار مدريد وبرشلونة صدمتك؟ اكتشف 5 مدن سرية بإيجارات رخيصة!',
+        image: 'https://image.pollinations.ai/prompt/Spain%20cheap%20cities%20housing?width=800&height=400&nologo=true',
+        createdAt: new Date().toISOString(), status: 'published', facebookPublished: true
+      },
+      {
+        id: '3', slug: 'spain-digital-nomad-visa',
+        title: 'تأشيرة النوماد الرقمي في إسبانيا 2026: كل ما تحتاجه',
+        category: 'Immigration', excerpt: '2300 يورو فقط شهرياً للحصول على إقامة إسبانيا كnomad رقمي!',
+        image: 'https://image.pollinations.ai/prompt/Spain%20digital%20nomad%20visa%20laptop?width=800&height=400&nologo=true',
+        createdAt: new Date().toISOString(), status: 'published', facebookPublished: false
+      }
+    ];
+    saveDB();
+    res.json({ success: true, count: 3 });
+  } else {
+    res.json({ success: true, count: db.articles.length, message: 'Already exists' });
+  }
 });
 
-app.get('/webhook/espana-hoy-analytics-list', (req, res) => {
-  try { res.json({ articles: db.getPublishedWithFbIds() }); }
-  catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/webhook/espana-hoy-save-analytics', (req, res) => {
-  try { db.saveAnalytics(req.body); res.json({ success: true }); }
-  catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-// ── Public API ────────────────────────────────────────
-app.get('/api/articles', (req, res) => {
-  const { page = 1, category, limit = 12 } = req.query;
-  res.json(db.getArticles({ page: parseInt(page), category, limit: parseInt(limit) }));
-});
-
-app.get('/api/article/:slug', (req, res) => {
-  const article = db.getArticleBySlug(req.params.slug);
-  if (!article) return res.status(404).json({ error: 'Not found' });
-  db.incrementViews(article.id);
-  res.json(article);
-});
-
-app.get('/api/stats', (req, res) => res.json(db.getStats()));
-
-// ── Sitemap ───────────────────────────────────────────
 app.get('/sitemap.xml', (req, res) => {
-  try {
-    const base     = process.env.BASE_URL || 'https://espana-hoy-production.up.railway.app';
-    const articles = db.getArticles({ page: 1, limit: 500 }).articles;
-    const cats     = ['immigration','residency','jobs','housing','education',
-      'cost-of-living','government-benefits','crime-safety','local-news','tourism','business'];
-    const now = new Date().toISOString().split('T')[0];
-
-    const staticUrls = ['','about','contact','privacy'].map(p => `
-  <url><loc>${base}/${p}</loc><lastmod>${now}</lastmod><changefreq>${p===''?'hourly':'monthly'}</changefreq><priority>${p===''?'1.0':'0.6'}</priority></url>`);
-
-    const catUrls = cats.map(c => `
-  <url><loc>${base}/category/${c}</loc><lastmod>${now}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>`);
-
-    const articleUrls = articles.map(a => `
-  <url><loc>${base}/article/${a.arabic_slug}</loc><lastmod>${(a.created_at||now).split('T')[0]}</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>`);
-
-    res.setHeader('Content-Type', 'application/xml');
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${[...staticUrls,...catUrls,...articleUrls].join('')}\n</urlset>`);
-  } catch(e) { res.status(500).send('Sitemap error'); }
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+  xml += '  <url><loc>https://espana-hoy-production-9f6e.up.railway.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>\n';
+  db.articles.forEach(a => {
+    xml += `  <url><loc>https://espana-hoy-production-9f6e.up.railway.app/article/${a.slug}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;
+  });
+  xml += '</urlset>';
+  res.header('Content-Type', 'application/xml');
+  res.send(xml);
 });
 
-// ── Robots.txt ────────────────────────────────────────
 app.get('/robots.txt', (req, res) => {
-  const base = process.env.BASE_URL || 'https://espana-hoy-production.up.railway.app';
-  res.setHeader('Content-Type', 'text/plain');
-  res.send(`User-agent: *\nAllow: /\nDisallow: /webhook/\nDisallow: /api/\n\nSitemap: ${base}/sitemap.xml`);
+  res.type('text/plain');
+  res.send('User-agent: *\nDisallow: /webhook/\nAllow: /\nSitemap: https://espana-hoy-production-9f6e.up.railway.app/sitemap.xml');
 });
 
-// ── Frontend Routes ───────────────────────────────────
-const pub = (f) => (req, res) => res.sendFile(path.join(__dirname, 'public', f));
-app.get('/',                pub('index.html'));
-app.get('/article/:slug',   pub('article.html'));
-app.get('/category/:cat',   pub('category.html'));
-app.get('/about',           pub('about.html'));
-app.get('/contact',         pub('contact.html'));
-app.get('/privacy',         pub('privacy.html'));
+// Static files
+app.use(express.static(PUBLIC_DIR));
 
-// ── Start ─────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`España Hoy running on port ${PORT}`);
-  db.init();
+// Fallback to index.html for all other routes
+app.get('*', (req, res) => {
+  const filePath = req.path.startsWith('/article/') ? 'article.html' : 'index.html';
+  res.sendFile(path.join(PUBLIC_DIR, filePath));
 });
 
-// ── Fix FB posts with hashtags ────────────────────────
-app.post('/webhook/fix-fb-hashtags', (req, res) => {
-  try {
-    const data = db.load ? db.load() : JSON.parse(require('fs').readFileSync(require('path').join(__dirname,'data','db.json'),'utf8'));
-    
-    const hashtags = `\n\n#العرب_في_إسبانيا #إسبانيا_اليوم #الهجرة_إلى_إسبانيا #العرب_في_أوروبا #وظائف_إسبانيا #إقامة_إسبانيا #مهاجرون_عرب #حياة_في_إسبانيا #الجالية_العربية #سكن_إسبانيا #عرب_مدريد #عرب_برشلونة #تعليم_إسبانيا #المغتربون_العرب #هجرة_عربية #España #ArabesEnEspaña #InmigracionEspana #VidaEnEspaña #TrabajoEnEspaña #EspanaHoy`;
-
-    let fixed = 0;
-    (data.articles||[]).forEach(article => {
-      if (!article.arabic_title) return;
-      const desc   = article.arabic_meta_description || '';
-      const teaser = desc.length > 20 ? desc.split('.')[0] : '';
-      article.facebook_post_arabic    = `${teaser}\n\nهل تعرف كيف تستفيد من هذا؟ 🤔🇪🇸\n\n▼ اقرأ الخبر كاملاً في أول تعليق${hashtags}`;
-      article.facebook_first_comment  = `🔗 اقرأ المقال كاملاً:\nhttps://espana-hoy-production.up.railway.app/article/${article.arabic_slug}\n\nشارك مع أصدقائك ليستفيدوا ❤️\n\n#إسبانيا_اليوم #EspanaHoy`;
-      article.fb_published = false;
-      article.fb_post_id   = null;
-      fixed++;
-    });
-
-    require('fs').writeFileSync(require('path').join(__dirname,'data','db.json'), JSON.stringify(data, null, 2));
-    res.json({ success: true, fixed });
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}, articles: ${db.articles.length}`));
