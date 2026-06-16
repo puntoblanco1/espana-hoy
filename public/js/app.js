@@ -1,261 +1,323 @@
-/* ═══════════════════════════
-   España Hoy — Homepage JS
-═══════════════════════════ */
+/* ===================================
+   إسبانيا اليوم — app.js
+   Homepage JavaScript
+   =================================== */
 
-const CATS = {
-  immigration:          { ar: 'الهجرة',          icon: '✈️' },
-  residency:            { ar: 'الإقامة',          icon: '🏠' },
-  jobs:                 { ar: 'الوظائف',          icon: '💼' },
-  housing:              { ar: 'السكن',            icon: '🏘️' },
-  education:            { ar: 'التعليم',          icon: '🎓' },
-  'cost-of-living':     { ar: 'تكلفة المعيشة',   icon: '💰' },
-  'government-benefits':{ ar: 'المساعدات',        icon: '🤝' },
-  'crime-safety':       { ar: 'الأمن',            icon: '🛡️' },
-  'local-news':         { ar: 'أخبار محلية',      icon: '📰' },
-  tourism:              { ar: 'السياحة',          icon: '🌅' },
-  business:             { ar: 'الأعمال',          icon: '📈' }
+const API_BASE = '';
+const CAT_LABELS = {
+  immigration: 'الهجرة',
+  residency: 'الإقامة',
+  jobs: 'الوظائف',
+  housing: 'السكن',
+  education: 'التعليم',
+  'cost-of-living': 'تكلفة المعيشة',
+  'government-benefits': 'مزايا حكومية',
+  'crime-safety': 'الأمن والسلامة',
+  'local-news': 'أخبار محلية',
+  tourism: 'السياحة',
+  business: 'الأعمال'
+};
+const CAT_ICONS = {
+  immigration:'✈️', residency:'📋', jobs:'💼', housing:'🏠',
+  education:'📚', 'cost-of-living':'💰', 'government-benefits':'🏛️',
+  'crime-safety':'🛡️', 'local-news':'📰', tourism:'🗺️', business:'💹'
 };
 
-// Fallback images per category
-const CAT_IMAGES = {
-  immigration:          'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80',
-  residency:            'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
-  jobs:                 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=80',
-  housing:              'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
-  education:            'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
-  'cost-of-living':     'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80',
-  'government-benefits':'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
-  'crime-safety':       'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80',
-  'local-news':         'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
-  tourism:              'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',
-  business:             'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80'
-};
+let allArticles = [];
+let displayedCount = 0;
+let currentCat = 'all';
+const PAGE_SIZE = 9;
 
-const DEFAULT_IMG = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80';
+/* ---- INIT ---- */
+document.addEventListener('DOMContentLoaded', () => {
+  setDateTime();
+  setInterval(setDateTime, 60000);
+  document.getElementById('year').textContent = new Date().getFullYear();
+  initDarkMode();
+  initMobileNav();
+  initBackTop();
+  initSearch();
+  fetchArticles();
+});
 
-let currentPage = 1;
-let currentCategory = null;
-let loading = false;
-let allLoaded = false;
-
-function catLabel(id) { return CATS[id]?.ar || id; }
-function catIcon(id)  { return CATS[id]?.icon || '📰'; }
-
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const diff = (Date.now() - new Date(dateStr)) / 1000;
-  if (diff < 60)    return 'الآن';
-  if (diff < 3600)  return `${Math.floor(diff/60)} دقيقة`;
-  if (diff < 86400) return `${Math.floor(diff/3600)} ساعة`;
-  return `${Math.floor(diff/86400)} يوم`;
+/* ---- DATE/TIME ---- */
+function setDateTime() {
+  const now = new Date();
+  const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  document.getElementById('current-date').textContent =
+    `${days[now.getDay()]}، ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('current-time').textContent = `${h}:${m}`;
 }
 
-function imgUrl(article) {
-  if (article.image_url && article.image_url.startsWith('http')) return article.image_url;
-  return CAT_IMAGES[article.category] || DEFAULT_IMG;
+/* ---- DARK MODE ---- */
+function initDarkMode() {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateDarkIcon(saved);
+  document.getElementById('dark-toggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateDarkIcon(next);
+  });
+}
+function updateDarkIcon(theme) {
+  const btn = document.getElementById('dark-toggle');
+  btn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
 }
 
-// ── Categories bar ─────────────────────────────────────
-function renderCats() {
-  const wrap = document.getElementById('catsScroll');
-  if (!wrap) return;
-  const all = `<button class="cat-chip active" data-cat="" onclick="filterCat(this,'')">🗞️ الكل</button>`;
-  const chips = Object.entries(CATS).map(([id, v]) =>
-    `<button class="cat-chip" data-cat="${id}" onclick="filterCat(this,'${id}')">${v.icon} ${v.ar}</button>`
-  ).join('');
-  wrap.innerHTML = all + chips;
+/* ---- MOBILE NAV ---- */
+function initMobileNav() {
+  const hamburger = document.getElementById('nav-hamburger');
+  const overlay = document.getElementById('mobile-overlay');
+  const panel = document.getElementById('mobile-panel');
+  const closeBtn = document.getElementById('mobile-close');
+  function openNav() { overlay.classList.add('open'); panel.classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeNav() { overlay.classList.remove('open'); panel.classList.remove('open'); document.body.style.overflow=''; }
+  hamburger.addEventListener('click', openNav);
+  overlay.addEventListener('click', closeNav);
+  closeBtn.addEventListener('click', closeNav);
 }
 
-function filterCat(btn, cat) {
-  document.querySelectorAll('.cat-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  currentCategory = cat || null;
-  currentPage = 1;
-  allLoaded = false;
-  document.getElementById('feedTitle').textContent = cat ? catLabel(cat) : 'آخر الأخبار';
-  document.getElementById('articlesGrid').innerHTML = skeletonCards(6);
-  fetchArticles(true);
+/* ---- BACK TO TOP ---- */
+function initBackTop() {
+  const btn = document.getElementById('back-top');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 400);
+  });
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
 
-// ── Skeleton ───────────────────────────────────────────
-function skeletonCards(n) {
-  return Array(n).fill(`
-    <div class="article-card">
-      <div class="card-img-wrap skeleton" style="padding-top:56.25%"></div>
-      <div class="card-body">
-        <div class="skeleton" style="height:1rem;width:85%;margin-bottom:.5rem;border-radius:6px"></div>
-        <div class="skeleton" style="height:1rem;width:60%;border-radius:6px"></div>
-      </div>
-    </div>`).join('');
+/* ---- SEARCH ---- */
+function initSearch() {
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+}
+function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if (q) window.location.href = `/search?q=${encodeURIComponent(q)}`;
 }
 
-// ── Article card ───────────────────────────────────────
-function articleCard(a) {
-  if (!a.arabic_title || !a.arabic_slug) return '';
-  const img = imgUrl(a);
-  return `
-    <div class="article-card">
-      <div class="card-img-wrap">
-        <img src="${img}" alt="${a.arabic_title}" loading="lazy"
-             onerror="this.src='${CAT_IMAGES[a.category]||DEFAULT_IMG}'">
-        <span class="card-badge">${catIcon(a.category)} ${catLabel(a.category)}</span>
-      </div>
-      <div class="card-body">
-        <h3 class="card-title">
-          <a href="/article/${a.arabic_slug}">${a.arabic_title}</a>
-        </h3>
-        <p class="card-excerpt">${a.arabic_meta_description || ''}</p>
-        <div class="card-meta">
-          <span class="views">${(a.views||0).toLocaleString('ar')}</span>
-          <span class="date">${timeAgo(a.created_at)}</span>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ── Fetch articles ─────────────────────────────────────
-async function fetchArticles(reset = false) {
-  if (loading || allLoaded) return;
-  loading = true;
-  const btn = document.getElementById('loadMoreBtn');
-  if (btn) btn.disabled = true;
-
+/* ---- FETCH ARTICLES ---- */
+async function fetchArticles() {
   try {
-    const params = new URLSearchParams({ page: currentPage, limit: 12 });
-    if (currentCategory) params.set('category', currentCategory);
-    const res  = await fetch(`/api/articles?${params}`);
+    const res = await fetch('/api/articles?limit=60&status=published');
     const data = await res.json();
-    const grid = document.getElementById('articlesGrid');
-
-    if (reset) grid.innerHTML = '';
-
-    const valid = (data.articles || []).filter(a => a.arabic_title && a.arabic_slug);
-
-    if (valid.length === 0) {
-      if (reset) grid.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)">
-          <div style="font-size:3rem">📭</div>
-          <p style="margin-top:1rem;font-weight:600">لا توجد مقالات بعد — النظام يعمل على جمع الأخبار</p>
-        </div>`;
-      allLoaded = true;
-    } else {
-      grid.innerHTML += valid.map(articleCard).join('');
-      if (currentPage >= data.pages) allLoaded = true;
-      else currentPage++;
+    allArticles = (data.articles || data || []).filter(a => a.status === 'published' || a.title);
+    if (allArticles.length === 0) {
+      showEmptyState();
+      return;
     }
-  } catch(e) { console.error(e); }
-
-  loading = false;
-  if (btn) { btn.disabled = allLoaded; if (allLoaded) btn.textContent = 'لا يوجد المزيد'; }
-}
-
-// ── Hero section ───────────────────────────────────────
-async function loadHero() {
-  try {
-    const res  = await fetch('/api/articles?page=1&limit=5');
-    const data = await res.json();
-    const valid = (data.articles || []).filter(a => a.arabic_title && a.arabic_slug);
-    if (valid.length === 0) { renderDefaultHero(); return; }
-    renderHero(valid[0], valid.slice(1, 3));
-  } catch(e) { renderDefaultHero(); }
-}
-
-function heroCardHtml(a, isMain) {
-  const img = imgUrl(a);
-  const titleSize = isMain ? '1.4rem' : '.95rem';
-  return `
-    <img class="hero-card-img" src="${img}" alt="${a.arabic_title}"
-         loading="${isMain?'eager':'lazy'}"
-         onerror="this.src='${CAT_IMAGES[a.category]||DEFAULT_IMG}'">
-    <div class="hero-overlay"></div>
-    <div class="hero-info">
-      <span class="hero-cat-badge">${catIcon(a.category)} ${catLabel(a.category)}</span>
-      <${isMain?'h2':'h3'} class="hero-title" style="font-size:${titleSize}">
-        <a href="/article/${a.arabic_slug}" style="color:inherit">${a.arabic_title}</a>
-      </${isMain?'h2':'h3'}>
-      <div class="hero-meta">${timeAgo(a.created_at)} · ${(a.views||0).toLocaleString('ar')} مشاهدة</div>
-    </div>`;
-}
-
-function renderHero(main, sides) {
-  const heroMain = document.getElementById('heroMain');
-  heroMain.className = 'hero-main';
-  heroMain.innerHTML = heroCardHtml(main, true);
-
-  const heroSide = document.getElementById('heroSide');
-  if (sides.length > 0) {
-    heroSide.innerHTML = sides.map(a => `
-      <div class="hero-side-card">${heroCardHtml(a, false)}</div>
-    `).join('');
-  } else {
-    heroSide.innerHTML = `
-      <div class="hero-side-card" style="background:var(--navy);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:.9rem">قريباً...</div>
-      <div class="hero-side-card" style="background:var(--navy);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:.9rem">قريباً...</div>`;
+    renderHero();
+    renderArticleGrid();
+    renderMostRead();
+    renderTicker();
+    renderCategoryCounts();
+  } catch (e) {
+    console.error('Error fetching articles:', e);
+    showEmptyState();
   }
 }
 
-function renderDefaultHero() {
-  document.getElementById('heroMain').innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:center;height:360px;background:linear-gradient(135deg,var(--navy),var(--red))">
-      <div style="text-align:center;color:white;padding:2rem">
-        <div style="font-size:4rem">🇪🇸</div>
-        <h2 style="font-size:1.6rem;font-weight:900;margin:.75rem 0 .5rem">إسبانيا اليوم</h2>
-        <p style="opacity:.7">النظام يعمل على جمع آخر الأخبار...</p>
+/* ---- RENDER HERO ---- */
+function renderHero() {
+  const heroCard = document.getElementById('hero-card');
+  const sideCards = document.getElementById('side-cards');
+  if (!allArticles.length) return;
+
+  const hero = allArticles[0];
+  const cat = hero.category || 'local-news';
+  const catLabel = CAT_LABELS[cat] || 'أخبار';
+  const slug = hero.slug || hero.id;
+  const imageHtml = hero.image
+    ? `<img class="hero-img" src="${hero.image}" alt="${escHtml(hero.title)}" loading="eager">`
+    : `<div class="hero-placeholder"></div>`;
+
+  heroCard.innerHTML = `
+    ${imageHtml}
+    <div class="hero-content">
+      <div class="hero-cat">${catLabel}</div>
+      <h1 class="hero-title">${escHtml(hero.title)}</h1>
+      <div class="hero-meta">
+        <span><i class="far fa-clock"></i> ${formatDate(hero.createdAt || hero.publishedAt)}</span>
+        <span><i class="far fa-eye"></i> ${hero.views || 0} مشاهدة</span>
       </div>
     </div>`;
-  document.getElementById('heroSide').innerHTML = `
-    <div class="hero-side-card" style="background:linear-gradient(135deg,#C0272D,#9B1F24);display:flex;align-items:center;justify-content:center">
-      <div style="text-align:center;color:white;padding:1rem"><div style="font-size:2rem">💼</div><p style="font-size:.85rem;margin-top:.5rem">وظائف إسبانيا</p></div>
-    </div>
-    <div class="hero-side-card" style="background:linear-gradient(135deg,#1A2744,#243157);display:flex;align-items:center;justify-content:center">
-      <div style="text-align:center;color:white;padding:1rem"><div style="font-size:2rem">🏠</div><p style="font-size:.85rem;margin-top:.5rem">سكن وإقامة</p></div>
-    </div>`;
+  heroCard.onclick = () => window.location.href = `/article?id=${slug}`;
+  heroCard.style.cursor = 'pointer';
+
+  // Side cards — next 2
+  const sides = allArticles.slice(1, 3);
+  sideCards.innerHTML = sides.map(a => {
+    const c = a.category || 'local-news';
+    const imgHtml = a.image
+      ? `<img class="side-card-img" src="${a.image}" alt="${escHtml(a.title)}" loading="lazy">`
+      : `<div class="side-card-img-placeholder">${CAT_ICONS[c] || '📰'}</div>`;
+    return `
+      <a href="/article?id=${a.slug || a.id}" class="side-card">
+        ${imgHtml}
+        <div class="side-card-body">
+          <div class="side-card-cat">${CAT_LABELS[c] || 'أخبار'}</div>
+          <div class="side-card-title">${escHtml(a.title)}</div>
+          <div class="side-card-date">${formatDate(a.createdAt || a.publishedAt)}</div>
+        </div>
+      </a>`;
+  }).join('');
 }
 
-// ── Ticker ─────────────────────────────────────────────
-async function loadTicker() {
-  try {
-    const res  = await fetch('/api/articles?limit=10&page=1');
-    const data = await res.json();
-    const valid = (data.articles||[]).filter(a => a.arabic_title);
-    if (valid.length > 0) {
-      document.getElementById('ticker').innerHTML =
-        valid.map(a => `<span style="margin-left:4rem">📰 ${a.arabic_title}</span>`).join('');
-    }
-  } catch(e) {}
+/* ---- RENDER ARTICLE GRID ---- */
+function renderArticleGrid(reset = true) {
+  const grid = document.getElementById('article-grid');
+  const filtered = currentCat === 'all'
+    ? allArticles.slice(3)
+    : allArticles.filter(a => (a.category || '') === currentCat);
+
+  if (reset) { displayedCount = 0; grid.innerHTML = ''; }
+
+  const slice = filtered.slice(displayedCount, displayedCount + PAGE_SIZE);
+  displayedCount += slice.length;
+
+  if (slice.length === 0 && displayedCount === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light)">لا توجد مقالات في هذا التصنيف بعد</div>`;
+    return;
+  }
+
+  slice.forEach(a => {
+    const cat = a.category || 'local-news';
+    const catLabel = CAT_LABELS[cat] || 'أخبار';
+    const imgHtml = a.image
+      ? `<img class="article-card-thumb" src="${a.image}" alt="${escHtml(a.title)}" loading="lazy">`
+      : `<div class="article-card-thumb-placeholder">${CAT_ICONS[cat] || '📰'}</div>`;
+    const card = document.createElement('a');
+    card.className = 'article-card';
+    card.href = `/article?id=${a.slug || a.id}`;
+    card.innerHTML = `
+      ${imgHtml}
+      <div class="article-card-body">
+        <span class="article-cat-badge">${catLabel}</span>
+        <h2 class="article-card-title">${escHtml(a.title)}</h2>
+        <div class="article-card-meta">
+          <span>${formatDate(a.createdAt || a.publishedAt)}</span>
+          <span class="article-read-time"><i class="far fa-clock"></i> ${readTime(a)} دقائق</span>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // Load more button
+  const btn = document.getElementById('load-more');
+  const hasMore = filtered.slice(displayedCount).length > 0;
+  btn.style.display = hasMore ? 'inline-flex' : 'none';
 }
 
-// ── Popular sidebar ────────────────────────────────────
-async function loadPopular() {
-  const list = document.getElementById('popularList');
-  if (!list) return;
-  try {
-    const res  = await fetch('/api/articles?limit=5&page=1');
-    const data = await res.json();
-    const valid = (data.articles||[]).filter(a => a.arabic_title && a.arabic_slug);
-    if (valid.length === 0) {
-      list.innerHTML = '<p style="font-size:.83rem;color:var(--text-muted);text-align:center;padding:1rem">قريباً...</p>';
-      return;
-    }
-    list.innerHTML = valid.map((a, i) => `
-      <div class="popular-item">
-        <span class="popular-num">${i+1}</span>
-        <a href="/article/${a.arabic_slug}" class="popular-title">${a.arabic_title}</a>
-      </div>`).join('');
-  } catch(e) { list.innerHTML = ''; }
-}
-
-// ── Burger ─────────────────────────────────────────────
-document.getElementById('burger')?.addEventListener('click', () => {
-  document.getElementById('mainNav')?.classList.toggle('open');
+document.getElementById('load-more').addEventListener('click', () => {
+  renderArticleGrid(false);
 });
 
-// ── Load More ──────────────────────────────────────────
-document.getElementById('loadMoreBtn')?.addEventListener('click', () => fetchArticles());
+/* ---- CATEGORY TABS ---- */
+document.getElementById('cat-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.cat-tab');
+  if (!tab) return;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentCat = tab.dataset.cat;
+  renderArticleGrid(true);
+});
 
-// ── Init ───────────────────────────────────────────────
-(async () => {
-  renderCats();
-  document.getElementById('articlesGrid').innerHTML = skeletonCards(6);
-  await Promise.all([loadHero(), fetchArticles(), loadTicker(), loadPopular()]);
-})();
+/* ---- MOST READ ---- */
+function renderMostRead() {
+  const list = document.getElementById('most-read-list');
+  const top5 = [...allArticles]
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .slice(0, 5);
+  list.innerHTML = top5.map((a, i) => `
+    <a href="/article?id=${a.slug || a.id}" class="most-read-item">
+      <div class="most-read-num">${i + 1}</div>
+      <div class="most-read-title">${escHtml(a.title)}</div>
+    </a>`).join('');
+}
+
+/* ---- TICKER ---- */
+function renderTicker() {
+  const track = document.getElementById('ticker-track');
+  const recent = allArticles.slice(0, 8);
+  if (!recent.length) return;
+  const items = [...recent, ...recent]; // duplicate for seamless loop
+  track.innerHTML = items.map(a =>
+    `<span class="ticker-item" onclick="window.location.href='/article?id=${a.slug || a.id}'">${escHtml(a.title)}</span>`
+  ).join('');
+}
+
+/* ---- CATEGORY COUNTS ---- */
+function renderCategoryCounts() {
+  const counts = {};
+  allArticles.forEach(a => {
+    const c = a.category || 'local-news';
+    counts[c] = (counts[c] || 0) + 1;
+  });
+  Object.entries(counts).forEach(([cat, count]) => {
+    const el = document.getElementById(`cnt-${cat}`);
+    if (el) el.textContent = count;
+  });
+}
+
+/* ---- NEWSLETTER ---- */
+function subscribeNewsletter() {
+  const email = document.getElementById('newsletter-email').value.trim();
+  if (!email || !email.includes('@')) { showToast('أدخل بريداً إلكترونياً صحيحاً'); return; }
+  showToast('شكراً! تم تسجيلك في النشرة الإخبارية ✅');
+  document.getElementById('newsletter-email').value = '';
+}
+
+/* ---- EMPTY STATE ---- */
+function showEmptyState() {
+  document.getElementById('hero-card').innerHTML = `
+    <div class="hero-placeholder"></div>
+    <div class="hero-content">
+      <div class="hero-cat">إسبانيا اليوم</div>
+      <h1 class="hero-title">مرحباً بك في إسبانيا اليوم</h1>
+      <div class="hero-meta"><span>جاري تحميل أحدث الأخبار...</span></div>
+    </div>`;
+  document.getElementById('article-grid').innerHTML =
+    `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-light)">
+      <div style="font-size:48px;margin-bottom:16px">📰</div>
+      <p style="font-size:16px">سيتم نشر المقالات قريباً</p>
+     </div>`;
+  document.getElementById('load-more').style.display = 'none';
+}
+
+/* ---- HELPERS ---- */
+function escHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                    'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    const diff = Math.floor((Date.now() - d) / 60000);
+    if (diff < 60) return `منذ ${diff} دقيقة`;
+    if (diff < 1440) return `منذ ${Math.floor(diff/60)} ساعة`;
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  } catch { return ''; }
+}
+
+function readTime(article) {
+  const text = (article.content || article.contentAr || article.body || '');
+  return Math.max(2, Math.ceil(text.split(/\s+/).length / 200));
+}
+
+function showToast(msg, dur = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}

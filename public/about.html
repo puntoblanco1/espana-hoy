@@ -1,139 +1,116 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>عن الموقع | إسبانيا اليوم</title>
-  <meta name="description" content="إسبانيا اليوم — منصتك العربية الأولى لأخبار إسبانيا. هجرة، وظائف، سكن، تعليم وكل ما يخص العرب في إسبانيا.">
-  <meta name="theme-color" content="#C0272D">
+  <meta name="description" content="تعرّف على موقع إسبانيا اليوم | España Hoy - منصتك العربية الأولى لأخبار إسبانيا">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://espana-hoy-production.up.railway.app/about">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="/css/main.css">
-  <style>
-    .about-hero { background: linear-gradient(135deg, var(--navy) 0%, #2d3f6b 100%); padding: 4rem 0; text-align: center; color: white; margin-bottom: 3rem; }
-    .about-hero-icon { font-size: 4rem; margin-bottom: 1rem; }
-    .about-hero h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: .75rem; }
-    .about-hero p { font-size: 1.1rem; opacity: .8; max-width: 600px; margin: 0 auto; }
-    .about-section { max-width: 800px; margin: 0 auto 3rem; }
-    .about-section h2 { font-size: 1.4rem; font-weight: 900; color: var(--navy); margin-bottom: 1rem; padding-right: .75rem; border-right: 4px solid var(--red); }
-    .about-section p { color: var(--text); line-height: 1.85; margin-bottom: 1rem; }
-    .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; margin: 2rem 0; }
-    .value-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; box-shadow: var(--shadow-sm); }
-    .value-icon { font-size: 2.2rem; margin-bottom: .75rem; }
-    .value-title { font-weight: 900; color: var(--navy); margin-bottom: .4rem; }
-    .value-desc { font-size: .85rem; color: var(--text-muted); line-height: 1.6; }
-    .cats-showcase { display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem; margin: 1.5rem 0; }
-    .cat-item { display: flex; align-items: center; gap: .6rem; background: var(--bg); padding: .75rem 1rem; border-radius: var(--radius); font-weight: 600; font-size: .9rem; }
-    @media(max-width:600px) { .values-grid { grid-template-columns: 1fr; } .cats-showcase { grid-template-columns: 1fr; } .about-hero h1 { font-size: 1.6rem; } }
-  </style>
 </head>
 <body>
-
-<header class="site-header">
+<div class="top-bar">
+  <div class="container">
+    <div class="date-time"><span id="current-date"></span></div>
+    <div class="top-social">
+      <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+    </div>
+  </div>
+</div>
+<header class="main-header">
   <div class="container">
     <div class="header-inner">
-      <div class="logo">
-        <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:.4rem">
-          <span class="logo-ar">إسبانيا اليوم</span>
-          <span class="logo-divider">|</span>
-          <span class="logo-es">España Hoy</span>
-        </a>
+      <a href="/" class="logo-wrap" style="text-decoration:none">
+        <div class="logo-icon">إ</div>
+        <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
+      </a>
+      <div class="header-actions">
+        <button class="dark-toggle" id="dark-toggle" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
       </div>
-      <nav class="main-nav" id="mainNav">
-        <a href="/" class="nav-link">الرئيسية</a>
-        <a href="/category/immigration" class="nav-link">الهجرة</a>
-        <a href="/category/jobs" class="nav-link">وظائف</a>
-        <a href="/category/housing" class="nav-link">السكن</a>
-        <a href="/category/residency" class="nav-link">الإقامة</a>
-        <a href="/about" class="nav-link active">عن الموقع</a>
-      </nav>
-      <button class="burger" id="burger"><span></span><span></span><span></span></button>
     </div>
   </div>
 </header>
-
-<div class="about-hero">
+<nav class="main-nav" role="navigation">
   <div class="container">
-    <div class="about-hero-icon">🇪🇸</div>
-    <h1>إسبانيا اليوم | España Hoy</h1>
-    <p>منصتك العربية الأولى لكل ما يخص الحياة في إسبانيا — من الهجرة والإقامة إلى الوظائف والسكن والتعليم</p>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="/">الرئيسية</a></li>
+      <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
+      <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
+      <li class="nav-item"><a href="/about" class="active">عن الموقع</a></li>
+      <li class="nav-item"><a href="/contact">اتصل بنا</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="static-page">
+    <h1>ℹ️ عن إسبانيا اليوم</h1>
+    <p class="page-lead">منصتك العربية الأولى لمتابعة أخبار إسبانيا — نوصلك بكل ما تحتاجه للعيش والنجاح في إسبانيا.</p>
+
+    <h2>من نحن</h2>
+    <p><strong>إسبانيا اليوم | España Hoy</strong> منصة إخبارية عربية متخصصة في تغطية أهم الأخبار والمستجدات التي تهم العرب المقيمين في إسبانيا أو الراغبين في الهجرة إليها.</p>
+    <p>ننشر يومياً أخبار موثوقة ومحللة باللغة العربية في مجالات الهجرة، الإقامة، الوظائف، السكن، التعليم، وتكلفة المعيشة.</p>
+
+    <h2>رسالتنا</h2>
+    <p>نهدف إلى تقريب المسافة بين العرب وإسبانيا، من خلال تقديم معلومات دقيقة وحديثة تساعدهم على اتخاذ القرارات الصحيحة في حياتهم اليومية.</p>
+
+    <h2>ما نغطيه</h2>
+    <ul>
+      <li>✈️ <strong>الهجرة:</strong> قوانين الهجرة، أنواع التأشيرات، إجراءات الدخول</li>
+      <li>📋 <strong>الإقامة:</strong> أنواع بطاقات الإقامة، التجديد، الحصول على الجنسية</li>
+      <li>💼 <strong>الوظائف:</strong> فرص العمل، الرواتب، حقوق العمال</li>
+      <li>🏠 <strong>السكن:</strong> الإيجار، الشراء، أسعار العقارات</li>
+      <li>📚 <strong>التعليم:</strong> المدارس، الجامعات، الدراسة في إسبانيا</li>
+      <li>💰 <strong>تكلفة المعيشة:</strong> الأسعار، الميزانية، نصائح التوفير</li>
+      <li>🏛️ <strong>المزايا الحكومية:</strong> الإعانات، الدعم الاجتماعي، الخدمات</li>
+      <li>🛡️ <strong>الأمن والسلامة:</strong> الأخبار الأمنية والنصائح</li>
+      <li>🗺️ <strong>السياحة:</strong> الأماكن السياحية، النصائح، التجارب</li>
+      <li>💹 <strong>الأعمال:</strong> ريادة الأعمال، الاستثمار، الشركات</li>
+    </ul>
+
+    <h2>التزامنا بالدقة</h2>
+    <p>نحرص على نشر محتوى موثوق ومحدث، ونعتمد على مصادر رسمية إسبانية وأوروبية. نراجع محتوانا بشكل دوري لضمان دقته وحداثته.</p>
+
+    <h2>سياسة المحتوى</h2>
+    <p>نلتزم بمعايير الصحافة المسؤولة والمهنية. لا ننشر محتوى مضللاً أو مسيئاً، ونحترم الخصوصية والحقوق الفكرية. إذا وجدت أي خطأ أو محتوى مسيء، يرجى <a href="/contact" style="color:var(--primary)">إبلاغنا فوراً</a>.</p>
+
+    <h2>تواصل معنا</h2>
+    <p>نسعد بتواصلك معنا لأي استفسار أو مقترح أو تعاون. زر صفحة <a href="/contact" style="color:var(--primary)">اتصل بنا</a> أو تابعنا على:</p>
+    <ul>
+      <li>📘 <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener" style="color:var(--primary)">فيسبوك: إسبانيا اليوم</a></li>
+    </ul>
   </div>
 </div>
 
-<main style="padding-bottom:4rem">
-  <div class="container">
-
-    <div class="about-section">
-      <h2>من نحن؟</h2>
-      <p>إسبانيا اليوم هي منصة إخبارية عربية متخصصة في تغطية كل ما يهم العرب الراغبين في الهجرة إلى إسبانيا أو المقيمين فيها بالفعل. نقدم محتوى موثوقاً وعملياً باللغة العربية يغطي موضوعات الهجرة والإقامة والعمل والسكن والتعليم والحياة اليومية.</p>
-      <p>نؤمن بأن كل عربي يستحق الحصول على المعلومة الصحيحة بلغته وبأسلوب يفهمه، دون الحاجة للتعامل مع محتوى إسباني معقد أو مصادر متفرقة. هدفنا أن نكون المرجع الأول لكل عربي يفكر في إسبانيا.</p>
-    </div>
-
-    <div class="about-section">
-      <h2>قيمنا</h2>
-      <div class="values-grid">
-        <div class="value-card">
-          <div class="value-icon">✅</div>
-          <div class="value-title">الدقة أولاً</div>
-          <div class="value-desc">كل معلومة نشرناها مُراجعة من مصادر رسمية إسبانية موثوقة</div>
-        </div>
-        <div class="value-card">
-          <div class="value-icon">⚡</div>
-          <div class="value-title">السرعة</div>
-          <div class="value-desc">نتابع الأخبار لحظة بلحظة ونوصلها لك بالعربية أولاً بأول</div>
-        </div>
-        <div class="value-card">
-          <div class="value-icon">🤝</div>
-          <div class="value-title">الفائدة العملية</div>
-          <div class="value-desc">محتوانا مش بس إخباري — هو دليل عملي تستخدمه في حياتك</div>
-        </div>
+<footer class="main-footer">
+  <div class="footer-bottom">
+    <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <span>© <span id="year"></span> إسبانيا اليوم | España Hoy — جميع الحقوق محفوظة</span>
+      <div class="footer-bottom-links">
+        <a href="/privacy">سياسة الخصوصية</a>
+        <a href="/contact">اتصل بنا</a>
+        <a href="/about">من نحن</a>
       </div>
-    </div>
-
-    <div class="about-section">
-      <h2>ماذا نغطي؟</h2>
-      <div class="cats-showcase">
-        <div class="cat-item">✈️ الهجرة إلى إسبانيا</div>
-        <div class="cat-item">🏠 الإقامة والتأشيرات</div>
-        <div class="cat-item">💼 الوظائف والرواتب</div>
-        <div class="cat-item">🏘️ السكن والعقارات</div>
-        <div class="cat-item">🎓 التعليم والمدارس</div>
-        <div class="cat-item">💰 تكلفة المعيشة</div>
-        <div class="cat-item">🤝 المساعدات الحكومية</div>
-        <div class="cat-item">🛡️ الأمن والسلامة</div>
-        <div class="cat-item">📰 أخبار إسبانيا المحلية</div>
-        <div class="cat-item">🌅 السياحة والسفر</div>
-        <div class="cat-item">📈 فرص الأعمال</div>
-        <div class="cat-item">⚖️ القوانين والضرائب</div>
-      </div>
-    </div>
-
-    <div class="about-section">
-      <h2>لمن نكتب؟</h2>
-      <p>نكتب لكل عربي له علاقة بإسبانيا — سواء كنت تفكر في الهجرة، أو طالب يدرس هناك، أو مقيم منذ سنوات، أو مستثمر يبحث عن فرص. جمهورنا من مصر، المغرب، الجزائر، تونس، سوريا، العراق، الأردن، لبنان ودول الخليج.</p>
-    </div>
-
-    <div class="about-section" style="text-align:center;background:var(--bg-card);border-radius:var(--radius-lg);padding:2.5rem;box-shadow:var(--shadow-sm)">
-      <h2 style="border:none;text-align:center;padding:0">تواصل معنا</h2>
-      <p>لديك خبر، تصحيح، أو اقتراح؟ نحن نسمعك.</p>
-      <a href="/contact" style="display:inline-block;background:var(--red);color:white;padding:.8rem 2.5rem;border-radius:999px;font-weight:700;font-size:1rem;margin-top:1rem">📩 راسلنا</a>
-    </div>
-
-  </div>
-</main>
-
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-bottom" style="border:none;padding:1.5rem 0">
-      <p>© 2024 إسبانيا اليوم | España Hoy — جميع الحقوق محفوظة</p>
     </div>
   </div>
 </footer>
 
 <script>
-  document.getElementById('burger')?.addEventListener('click', () => {
-    document.getElementById('mainNav')?.classList.toggle('open');
-  });
+document.getElementById('year').textContent=new Date().getFullYear();
+const d=new Date(),months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+document.getElementById('current-date').textContent=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+const saved=localStorage.getItem('theme')||'light';
+document.documentElement.setAttribute('data-theme',saved);
+document.getElementById('dark-toggle').addEventListener('click',()=>{
+  const c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);
+  document.getElementById('dark-toggle').innerHTML=n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+});
 </script>
 </body>
 </html>

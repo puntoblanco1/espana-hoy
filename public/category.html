@@ -1,138 +1,183 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="pageTitle">إسبانيا اليوم</title>
-  <meta name="description" id="metaDesc" content="">
-  <meta property="og:title" id="ogTitle" content="">
-  <meta name="theme-color" content="#C0272D">
+  <title id="page-title">تصنيف | إسبانيا اليوم</title>
+  <meta name="description" id="page-desc" content="أخبار إسبانيا بالعربية">
+  <meta name="robots" content="index, follow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-
-<header class="site-header">
+<div class="top-bar">
+  <div class="container">
+    <div class="date-time"><span id="current-date"></span></div>
+    <div class="top-social">
+      <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" target="_blank" rel="noopener" aria-label="إنستجرام"><i class="fab fa-instagram"></i></a>
+    </div>
+  </div>
+</div>
+<header class="main-header">
   <div class="container">
     <div class="header-inner">
-      <div class="logo">
-        <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:.4rem">
-          <span class="logo-ar">إسبانيا اليوم</span>
-          <span class="logo-divider">|</span>
-          <span class="logo-es">España Hoy</span>
-        </a>
+      <a href="/" class="logo-wrap" style="text-decoration:none">
+        <div class="logo-icon">إ</div>
+        <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
+      </a>
+      <div class="header-search">
+        <input type="text" id="search-input" placeholder="ابحث في الأخبار..." autocomplete="off">
+        <button class="search-btn" onclick="doSearch()" aria-label="بحث"><i class="fas fa-search"></i></button>
       </div>
-      <nav class="main-nav" id="mainNav">
-        <a href="/" class="nav-link">الرئيسية</a>
-        <a href="/category/immigration" class="nav-link">الهجرة</a>
-        <a href="/category/jobs" class="nav-link">وظائف</a>
-        <a href="/category/housing" class="nav-link">السكن</a>
-        <a href="/category/residency" class="nav-link">الإقامة</a>
-        <a href="/category/education" class="nav-link">التعليم</a>
-      </nav>
-      <button class="burger" id="burger"><span></span><span></span><span></span></button>
+      <div class="header-actions">
+        <button class="dark-toggle" id="dark-toggle" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
+      </div>
     </div>
   </div>
 </header>
-
-<main style="padding:2rem 0 4rem">
+<nav class="main-nav" role="navigation" aria-label="التنقل الرئيسي">
   <div class="container">
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="القائمة"><i class="fas fa-bars"></i></button>
+    <ul class="nav-menu" id="nav-menu">
+      <li class="nav-item"><a href="/">الرئيسية</a></li>
+      <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
+      <li class="nav-item"><a href="/category/residency">الإقامة</a></li>
+      <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
+      <li class="nav-item"><a href="/category/housing">السكن</a></li>
+      <li class="nav-item"><a href="/category/education">التعليم</a></li>
+      <li class="nav-item has-sub">
+        <a href="#">المزيد</a>
+        <ul class="sub-menu">
+          <li><a href="/category/cost-of-living">تكلفة المعيشة</a></li>
+          <li><a href="/category/government-benefits">مزايا حكومية</a></li>
+          <li><a href="/category/crime-safety">الأمن والسلامة</a></li>
+          <li><a href="/category/local-news">أخبار محلية</a></li>
+          <li><a href="/category/tourism">السياحة</a></li>
+          <li><a href="/category/business">الأعمال</a></li>
+        </ul>
+      </li>
+      <li class="nav-item"><a href="/about">عن الموقع</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="mobile-nav-overlay" id="mobile-overlay"></div>
+<div class="mobile-nav-panel" id="mobile-panel">
+  <div class="mobile-nav-header"><span>إسبانيا اليوم</span><button class="mobile-close" id="mobile-close">✕</button></div>
+  <div class="mobile-nav-links">
+    <a href="/">🏠 الرئيسية</a>
+    <a href="/category/immigration">✈️ الهجرة</a>
+    <a href="/category/residency">📋 الإقامة</a>
+    <a href="/category/jobs">💼 الوظائف</a>
+    <a href="/category/housing">🏠 السكن</a>
+    <a href="/category/education">📚 التعليم</a>
+    <a href="/category/cost-of-living">💰 تكلفة المعيشة</a>
+    <a href="/category/government-benefits">🏛️ مزايا حكومية</a>
+    <a href="/category/crime-safety">🛡️ الأمن والسلامة</a>
+    <a href="/category/local-news">📰 أخبار محلية</a>
+    <a href="/category/tourism">🗺️ السياحة</a>
+    <a href="/category/business">💹 الأعمال</a>
+    <a href="/about">ℹ️ عن الموقع</a>
+    <a href="/contact">📩 اتصل بنا</a>
+    <a href="/privacy">🔒 سياسة الخصوصية</a>
+  </div>
+</div>
 
-    <!-- Category Hero -->
-    <div class="cat-hero" id="catHero">
-      <div class="cat-hero-icon" id="catIcon">📰</div>
-      <h1 class="cat-hero-title" id="catTitle">جاري التحميل...</h1>
-      <p class="cat-hero-desc" id="catDesc"></p>
-      <div class="cat-hero-count" id="catCount"></div>
+<!-- CATEGORY HEADER -->
+<div style="background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:white;padding:32px 0 28px">
+  <div class="container">
+    <nav style="font-size:12px;opacity:0.7;margin-bottom:10px">
+      <a href="/" style="color:white">الرئيسية</a> / <span id="cat-breadcrumb">التصنيف</span>
+    </nav>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-size:40px" id="cat-icon">📰</div>
+      <div>
+        <h1 style="font-size:28px;font-weight:900;margin-bottom:4px" id="cat-title">التصنيف</h1>
+        <p style="font-size:14px;opacity:0.8" id="cat-desc">جاري التحميل...</p>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Ad top -->
-    <div class="ad-box ad-leaderboard" style="margin:1.5rem 0">
-      <span class="ad-label">إعلان</span>
-      <div class="ad-inner" id="adTop"></div>
-    </div>
+<div class="container" style="margin-top:32px">
+  <div class="two-col-layout">
+    <main>
+      <div class="ad-label">إعلان</div>
+      <div class="ad-zone ad-banner" style="margin-bottom:24px"></div>
 
-    <!-- All categories chips -->
-    <div class="cats-scroll" id="catsScroll" style="margin-bottom:2rem"></div>
+      <div id="cat-article-grid" class="article-grid">
+        <div class="article-card" style="pointer-events:none"><div class="article-card-thumb-placeholder skeleton"></div><div class="article-card-body"><div class="skeleton" style="width:70px;height:18px;border-radius:40px;margin-bottom:10px"></div><div class="skeleton" style="height:20px;margin-bottom:8px"></div><div class="skeleton" style="height:20px;width:80%"></div></div></div>
+        <div class="article-card" style="pointer-events:none"><div class="article-card-thumb-placeholder skeleton"></div><div class="article-card-body"><div class="skeleton" style="width:70px;height:18px;border-radius:40px;margin-bottom:10px"></div><div class="skeleton" style="height:20px;margin-bottom:8px"></div><div class="skeleton" style="height:20px;width:80%"></div></div></div>
+        <div class="article-card" style="pointer-events:none"><div class="article-card-thumb-placeholder skeleton"></div><div class="article-card-body"><div class="skeleton" style="width:70px;height:18px;border-radius:40px;margin-bottom:10px"></div><div class="skeleton" style="height:20px;margin-bottom:8px"></div><div class="skeleton" style="height:20px;width:80%"></div></div></div>
+      </div>
+      <div class="load-more-wrap"><button class="load-more-btn" id="load-more" style="display:none"><i class="fas fa-plus"></i> تحميل المزيد</button></div>
+    </main>
 
-    <!-- Section header -->
-    <div class="section-header">
-      <h2 class="section-title" id="feedTitle">المقالات</h2>
-      <span id="totalCount" style="font-size:.85rem;color:var(--text-muted)"></span>
-    </div>
-
-    <!-- Grid -->
-    <div class="content-grid">
-      <div class="articles-col">
-        <div class="articles-grid" id="articlesGrid"></div>
-        <div class="load-more-wrap">
-          <button class="load-more-btn" id="loadMoreBtn">تحميل المزيد</button>
+    <aside class="sidebar">
+      <div class="widget">
+        <div class="widget-header"><i class="fas fa-th-large"></i> جميع التصنيفات</div>
+        <div class="widget-body">
+          <div class="cat-list">
+            <a href="/category/immigration" class="cat-item"><span class="cat-name">✈️ الهجرة</span></a>
+            <a href="/category/residency" class="cat-item"><span class="cat-name">📋 الإقامة</span></a>
+            <a href="/category/jobs" class="cat-item"><span class="cat-name">💼 الوظائف</span></a>
+            <a href="/category/housing" class="cat-item"><span class="cat-name">🏠 السكن</span></a>
+            <a href="/category/education" class="cat-item"><span class="cat-name">📚 التعليم</span></a>
+            <a href="/category/cost-of-living" class="cat-item"><span class="cat-name">💰 تكلفة المعيشة</span></a>
+            <a href="/category/government-benefits" class="cat-item"><span class="cat-name">🏛️ مزايا حكومية</span></a>
+            <a href="/category/crime-safety" class="cat-item"><span class="cat-name">🛡️ الأمن والسلامة</span></a>
+            <a href="/category/local-news" class="cat-item"><span class="cat-name">📰 أخبار محلية</span></a>
+            <a href="/category/tourism" class="cat-item"><span class="cat-name">🗺️ السياحة</span></a>
+            <a href="/category/business" class="cat-item"><span class="cat-name">💹 الأعمال</span></a>
+          </div>
         </div>
       </div>
-
-      <aside class="sidebar">
-        <div class="ad-box ad-sidebar">
-          <span class="ad-label">إعلان</span>
-          <div class="ad-inner" id="adSidebar"></div>
+      <div class="ad-label">إعلان</div>
+      <div class="ad-zone" style="min-height:250px;margin-bottom:24px"></div>
+      <div class="widget">
+        <div class="widget-header"><i class="fas fa-envelope"></i> النشرة الإخبارية</div>
+        <div class="newsletter-widget">
+          <h4>اشترك في نشرتنا</h4>
+          <p>احصل على أحدث الأخبار مباشرة في بريدك</p>
+          <div class="newsletter-form">
+            <input type="email" placeholder="بريدك الإلكتروني" id="newsletter-email">
+            <button onclick="subscribeNewsletter()">اشترك مجاناً</button>
+          </div>
         </div>
-        <div class="sidebar-widget">
-          <h3 class="widget-title">التصنيفات</h3>
-          <div id="catsList"></div>
-        </div>
-        <div class="sidebar-widget">
-          <h3 class="widget-title">روابط مهمة</h3>
-          <ul class="quick-links">
-            <li><a href="https://extranjeros.inclusion.gob.es" target="_blank" rel="noopener">📋 شؤون الأجانب</a></li>
-            <li><a href="https://www.sepe.es" target="_blank" rel="noopener">💼 SEPE - التشغيل</a></li>
-            <li><a href="https://www.seg-social.es" target="_blank" rel="noopener">🏥 الضمان الاجتماعي</a></li>
-            <li><a href="https://www.idealista.com" target="_blank" rel="noopener">🏠 Idealista - عقارات</a></li>
-            <li><a href="https://www.infojobs.net" target="_blank" rel="noopener">💼 InfoJobs - وظائف</a></li>
-          </ul>
-        </div>
-      </aside>
-    </div>
-
+      </div>
+    </aside>
   </div>
-</main>
+</div>
 
-<footer class="site-footer">
+<footer class="main-footer" role="contentinfo">
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <div class="logo footer-logo">
-          <span class="logo-ar">إسبانيا اليوم</span>
-          <span class="logo-divider">|</span>
-          <span class="logo-es">España Hoy</span>
-        </div>
+        <div class="logo-wrap"><div class="logo-icon" style="font-size:20px">إ</div><div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div></div>
         <p class="footer-desc">منصتك العربية الأولى لمتابعة أخبار إسبانيا.</p>
+        <div class="footer-social">
+          <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" target="_blank" rel="noopener" aria-label="إنستجرام"><i class="fab fa-instagram"></i></a>
+        </div>
       </div>
-      <div class="footer-links">
-        <h4>التصنيفات</h4>
-        <ul>
-          <li><a href="/category/immigration">الهجرة والإقامة</a></li>
-          <li><a href="/category/jobs">الوظائف والرواتب</a></li>
-          <li><a href="/category/housing">السكن والعقارات</a></li>
-          <li><a href="/category/education">التعليم</a></li>
-          <li><a href="/category/cost-of-living">تكلفة المعيشة</a></li>
-        </ul>
-      </div>
-      <div class="footer-links">
-        <h4>روابط</h4>
-        <ul>
-          <li><a href="/about">عن الموقع</a></li>
-          <li><a href="/contact">اتصل بنا</a></li>
-          <li><a href="/privacy">سياسة الخصوصية</a></li>
-          <li><a href="/sitemap.xml">خريطة الموقع</a></li>
-        </ul>
-      </div>
+      <div class="footer-col"><h4>الأقسام</h4><div class="footer-links"><a href="/category/immigration">الهجرة</a><a href="/category/residency">الإقامة</a><a href="/category/jobs">الوظائف</a><a href="/category/housing">السكن</a><a href="/category/education">التعليم</a></div></div>
+      <div class="footer-col"><h4>أقسام أخرى</h4><div class="footer-links"><a href="/category/cost-of-living">تكلفة المعيشة</a><a href="/category/government-benefits">مزايا حكومية</a><a href="/category/local-news">أخبار محلية</a><a href="/category/tourism">السياحة</a><a href="/category/business">الأعمال</a></div></div>
+      <div class="footer-col"><h4>عن الموقع</h4><div class="footer-links"><a href="/about">من نحن</a><a href="/contact">اتصل بنا</a><a href="/privacy">سياسة الخصوصية</a></div></div>
     </div>
-    <div class="footer-bottom">
-      <p>© 2024 إسبانيا اليوم | España Hoy — جميع الحقوق محفوظة</p>
+  </div>
+  <div class="footer-bottom">
+    <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <span>© <span id="year"></span> إسبانيا اليوم | España Hoy — جميع الحقوق محفوظة</span>
+      <div class="footer-bottom-links"><a href="/privacy">سياسة الخصوصية</a><a href="/contact">اتصل بنا</a></div>
     </div>
   </div>
 </footer>
 
+<button class="back-top" id="back-top" aria-label="العودة للأعلى"><i class="fas fa-chevron-up"></i></button>
+<div class="toast" id="toast"></div>
 <script src="/js/category.js"></script>
 </body>
 </html>

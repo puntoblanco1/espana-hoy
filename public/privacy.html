@@ -1,89 +1,142 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>سياسة الخصوصية | إسبانيا اليوم</title>
-  <meta name="theme-color" content="#C0272D">
+  <meta name="description" content="سياسة الخصوصية لموقع إسبانيا اليوم | España Hoy">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://espana-hoy-production.up.railway.app/privacy">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="/css/main.css">
-  <style>
-    .policy-wrap { max-width: 800px; margin: 3rem auto 5rem; }
-    .policy-wrap h1 { font-size: 1.8rem; font-weight: 900; color: var(--navy); margin-bottom: .5rem; }
-    .policy-date { color: var(--text-muted); font-size: .85rem; margin-bottom: 2rem; }
-    .policy-wrap h2 { font-size: 1.15rem; font-weight: 900; color: var(--navy); margin: 2rem 0 .75rem; border-right: 4px solid var(--red); padding-right: .75rem; }
-    .policy-wrap p, .policy-wrap li { color: var(--text); line-height: 1.85; margin-bottom: .75rem; font-size: .95rem; }
-    .policy-wrap ul { padding-right: 1.5rem; }
-  </style>
 </head>
 <body>
-<header class="site-header">
+<div class="top-bar">
+  <div class="container">
+    <div class="date-time"><span id="current-date"></span></div>
+    <div class="top-social">
+      <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+    </div>
+  </div>
+</div>
+<header class="main-header">
   <div class="container">
     <div class="header-inner">
-      <div class="logo">
-        <a href="/" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:.4rem">
-          <span class="logo-ar">إسبانيا اليوم</span><span class="logo-divider">|</span><span class="logo-es">España Hoy</span>
-        </a>
+      <a href="/" class="logo-wrap" style="text-decoration:none">
+        <div class="logo-icon">إ</div>
+        <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
+      </a>
+      <div class="header-actions">
+        <button class="dark-toggle" id="dark-toggle" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
       </div>
-      <nav class="main-nav" id="mainNav">
-        <a href="/" class="nav-link">الرئيسية</a>
-        <a href="/about" class="nav-link">عن الموقع</a>
-        <a href="/contact" class="nav-link">اتصل بنا</a>
-      </nav>
-      <button class="burger" id="burger"><span></span><span></span><span></span></button>
     </div>
   </div>
 </header>
-
-<main><div class="container"><div class="policy-wrap">
-  <h1>🔒 سياسة الخصوصية</h1>
-  <p class="policy-date">آخر تحديث: يناير 2024</p>
-
-  <h2>١. المعلومات التي نجمعها</h2>
-  <p>عند زيارتك لموقع إسبانيا اليوم، قد نجمع المعلومات التالية:</p>
-  <ul>
-    <li>بيانات الزيارة (عنوان IP، نوع المتصفح، الصفحات المزارة)</li>
-    <li>المعلومات التي تقدمها طوعاً عبر نموذج التواصل</li>
-    <li>ملفات تعريف الارتباط (Cookies) لتحسين تجربتك</li>
-  </ul>
-
-  <h2>٢. كيف نستخدم المعلومات</h2>
-  <ul>
-    <li>تحسين محتوى الموقع وتجربة المستخدم</li>
-    <li>تحليل إحصائيات الزيارات</li>
-    <li>الرد على استفساراتك</li>
-    <li>عرض إعلانات ملائمة عبر Google AdSense</li>
-  </ul>
-
-  <h2>٣. Google AdSense والإعلانات</h2>
-  <p>نستخدم Google AdSense لعرض الإعلانات. قد تستخدم Google ملفات تعريف الارتباط لعرض إعلانات مبنية على زياراتك السابقة. يمكنك إيقاف هذه الميزة من خلال <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">إعدادات إعلانات Google</a>.</p>
-
-  <h2>٤. ملفات تعريف الارتباط (Cookies)</h2>
-  <p>نستخدم Cookies ضرورية لتشغيل الموقع وCookies تحليلية لفهم طريقة استخدامك للموقع. يمكنك إيقاف Cookies من إعدادات متصفحك.</p>
-
-  <h2>٥. مشاركة البيانات</h2>
-  <p>لا نبيع أو نؤجر أو نشارك بياناتك الشخصية مع أطراف ثالثة، باستثناء ما يقتضيه القانون أو ما تتطلبه خدمات الطرف الثالث المستخدمة (مثل Google Analytics).</p>
-
-  <h2>٦. حقوقك</h2>
-  <ul>
-    <li>الحق في الوصول إلى بياناتك الشخصية</li>
-    <li>الحق في طلب حذفها</li>
-    <li>الحق في الاعتراض على معالجتها</li>
-  </ul>
-  <p>للتواصل معنا بشأن خصوصيتك: <a href="/contact">صفحة التواصل</a></p>
-
-  <h2>٧. التعديلات</h2>
-  <p>نحتفظ بحق تعديل سياسة الخصوصية في أي وقت. سيتم إشعارك بالتغييرات الجوهرية عبر الموقع.</p>
-</div></div></main>
-
-<footer class="site-footer">
+<nav class="main-nav" role="navigation">
   <div class="container">
-    <div class="footer-bottom" style="border:none;padding:1.5rem 0">
-      <p>© 2024 إسبانيا اليوم | España Hoy</p>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="/">الرئيسية</a></li>
+      <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
+      <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
+      <li class="nav-item"><a href="/about">عن الموقع</a></li>
+      <li class="nav-item"><a href="/contact">اتصل بنا</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="static-page">
+    <h1>🔒 سياسة الخصوصية</h1>
+    <p class="page-lead">آخر تحديث: يناير 2025 | هذه الصفحة توضح كيفية جمع واستخدام وحماية بياناتك الشخصية عند استخدام موقع إسبانيا اليوم.</p>
+
+    <h2>من نحن</h2>
+    <p>موقع <strong>إسبانيا اليوم | España Hoy</strong> هو منصة إخبارية عربية متخصصة في أخبار إسبانيا للمجتمعات العربية. يمكنك التواصل معنا عبر صفحة <a href="/contact" style="color:var(--primary)">اتصل بنا</a>.</p>
+
+    <h2>البيانات التي نجمعها</h2>
+    <p>نجمع فقط البيانات الضرورية لتحسين تجربتك:</p>
+    <ul>
+      <li><strong>بيانات الاستخدام:</strong> الصفحات التي تزورها، مدة الزيارة، الجهاز والمتصفح المستخدم.</li>
+      <li><strong>البريد الإلكتروني (اختياري):</strong> إذا اشتركت في نشرتنا الإخبارية.</li>
+      <li><strong>الرسائل:</strong> إذا تواصلت معنا عبر نموذج الاتصال.</li>
+      <li><strong>الكوكيز:</strong> نستخدم الكوكيز لتحسين الأداء وتخصيص المحتوى.</li>
+    </ul>
+
+    <h2>كيف نستخدم بياناتك</h2>
+    <ul>
+      <li>تحسين محتوى الموقع وتجربة المستخدم.</li>
+      <li>إرسال النشرة الإخبارية (إذا اشتركت).</li>
+      <li>تحليل إحصاءات الزيارات لتطوير الخدمة.</li>
+      <li>الرد على استفساراتك ورسائلك.</li>
+    </ul>
+
+    <h2>الإعلانات (Google AdSense)</h2>
+    <p>نستخدم Google AdSense لعرض الإعلانات على موقعنا. تستخدم Google الكوكيز لعرض إعلانات مخصصة بناءً على زياراتك السابقة. يمكنك إيقاف هذه الميزة عبر <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener" style="color:var(--primary)">إعدادات إعلانات Google</a>.</p>
+    <p>لمزيد من المعلومات حول كيفية استخدام Google للبيانات، راجع <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--primary)">سياسة خصوصية Google</a>.</p>
+
+    <h2>مشاركة البيانات مع أطراف ثالثة</h2>
+    <p>لا نبيع بياناتك الشخصية أو نشاركها مع أطراف ثالثة، باستثناء:</p>
+    <ul>
+      <li><strong>Google Analytics:</strong> لتحليل إحصاءات الموقع.</li>
+      <li><strong>Google AdSense:</strong> لعرض الإعلانات.</li>
+      <li><strong>مزودي الخدمة:</strong> الشركاء التقنيون الذين يساعدون في تشغيل الموقع.</li>
+    </ul>
+
+    <h2>الكوكيز (Cookies)</h2>
+    <p>نستخدم نوعين من الكوكيز:</p>
+    <ul>
+      <li><strong>كوكيز ضرورية:</strong> لضمان عمل الموقع بشكل صحيح (تفضيل الوضع الليلي، مثلاً).</li>
+      <li><strong>كوكيز التحليل والإعلانات:</strong> من Google لتحسين المحتوى وعرض الإعلانات.</li>
+    </ul>
+    <p>يمكنك إدارة الكوكيز من إعدادات متصفحك في أي وقت.</p>
+
+    <h2>حقوقك (GDPR)</h2>
+    <p>إذا كنت مقيماً في الاتحاد الأوروبي أو إسبانيا، فلك الحق في:</p>
+    <ul>
+      <li>الاطلاع على البيانات التي نحتفظ بها عنك.</li>
+      <li>تصحيح بياناتك غير الصحيحة.</li>
+      <li>حذف بياناتك ("حق النسيان").</li>
+      <li>الاعتراض على معالجة بياناتك.</li>
+    </ul>
+    <p>للممارسة أي من هذه الحقوق، تواصل معنا عبر <a href="/contact" style="color:var(--primary)">صفحة الاتصال</a>.</p>
+
+    <h2>أمان البيانات</h2>
+    <p>نتخذ إجراءات أمنية مناسبة لحماية بياناتك من الوصول غير المصرح به أو التغيير أو الإفصاح أو الحذف.</p>
+
+    <h2>التغييرات على هذه السياسة</h2>
+    <p>قد نحدّث سياسة الخصوصية هذه من وقت لآخر. سنعلمك بأي تغييرات جوهرية عبر الموقع. يُعدّ استمرارك في استخدام الموقع بعد التغييرات موافقةً منك عليها.</p>
+
+    <h2>اتصل بنا</h2>
+    <p>إذا كان لديك أي أسئلة حول سياسة الخصوصية، يمكنك التواصل معنا عبر <a href="/contact" style="color:var(--primary)">صفحة الاتصال</a>.</p>
+  </div>
+</div>
+
+<footer class="main-footer">
+  <div class="footer-bottom">
+    <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <span>© <span id="year"></span> إسبانيا اليوم | España Hoy — جميع الحقوق محفوظة</span>
+      <div class="footer-bottom-links">
+        <a href="/privacy">سياسة الخصوصية</a>
+        <a href="/contact">اتصل بنا</a>
+        <a href="/about">من نحن</a>
+      </div>
     </div>
   </div>
 </footer>
-<script>document.getElementById('burger')?.addEventListener('click',()=>document.getElementById('mainNav')?.classList.toggle('open'));</script>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+const d=new Date(), months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+document.getElementById('current-date').textContent=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+const saved=localStorage.getItem('theme')||'light';
+document.documentElement.setAttribute('data-theme',saved);
+document.getElementById('dark-toggle').addEventListener('click',()=>{
+  const c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);
+  document.getElementById('dark-toggle').innerHTML=n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+});
+</script>
 </body>
 </html>

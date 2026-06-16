@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">بحث | إسبانيا اليوم</title>
+  <meta name="robots" content="noindex, follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="top-bar">
+  <div class="container"><div class="date-time"><span id="current-date"></span></div></div>
+</div>
+<header class="main-header">
+  <div class="container">
+    <div class="header-inner">
+      <a href="/" class="logo-wrap" style="text-decoration:none">
+        <div class="logo-icon">إ</div>
+        <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
+      </a>
+      <div class="header-actions">
+        <button class="dark-toggle" id="dark-toggle" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
+      </div>
+    </div>
+  </div>
+</header>
+<nav class="main-nav" role="navigation">
+  <div class="container">
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="/">الرئيسية</a></li>
+      <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
+      <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
+      <li class="nav-item"><a href="/about">عن الموقع</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container search-results-page">
+  <h1 style="font-size:22px;font-weight:800;margin-bottom:20px">
+    <i class="fas fa-search" style="color:var(--primary)"></i>
+    نتائج البحث عن: <span id="search-query" style="color:var(--primary)"></span>
+  </h1>
+  <input type="text" class="search-input-big" id="search-box" placeholder="ابحث في الأخبار...">
+  <div id="results-count" style="font-size:13px;color:var(--text-light);margin-bottom:20px"></div>
+  <div class="article-grid" id="search-results"></div>
+</div>
+
+<footer class="main-footer">
+  <div class="footer-bottom">
+    <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <span>© <span id="year"></span> إسبانيا اليوم | España Hoy</span>
+      <div class="footer-bottom-links"><a href="/privacy">سياسة الخصوصية</a><a href="/contact">اتصل بنا</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const CAT_LABELS={immigration:'الهجرة',residency:'الإقامة',jobs:'الوظائف',housing:'السكن',education:'التعليم','cost-of-living':'تكلفة المعيشة','government-benefits':'مزايا حكومية','crime-safety':'الأمن والسلامة','local-news':'أخبار محلية',tourism:'السياحة',business:'الأعمال'};
+const CAT_ICONS={immigration:'✈️',residency:'📋',jobs:'💼',housing:'🏠',education:'📚','cost-of-living':'💰','government-benefits':'🏛️','crime-safety':'🛡️','local-news':'📰',tourism:'🗺️',business:'💹'};
+
+document.getElementById('year').textContent=new Date().getFullYear();
+const d=new Date(),months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+document.getElementById('current-date').textContent=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+const saved=localStorage.getItem('theme')||'light';
+document.documentElement.setAttribute('data-theme',saved);
+document.getElementById('dark-toggle').addEventListener('click',()=>{
+  const c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);
+  document.getElementById('dark-toggle').innerHTML=n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+});
+
+const q=new URLSearchParams(window.location.search).get('q')||'';
+document.getElementById('search-query').textContent=q;
+document.getElementById('search-box').value=q;
+document.getElementById('page-title').textContent=`بحث: ${q} | إسبانيا اليوم`;
+
+document.getElementById('search-box').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){const v=e.target.value.trim();if(v)window.location.href=`/search?q=${encodeURIComponent(v)}`;}
+});
+
+async function doSearch(){
+  if(!q){document.getElementById('results-count').textContent='أدخل كلمة للبحث';return;}
+  try{
+    const res=await fetch(`/api/articles?search=${encodeURIComponent(q)}&limit=30`);
+    const data=await res.json();
+    const articles=data.articles||data||[];
+    document.getElementById('results-count').textContent=`${articles.length} نتيجة`;
+    const grid=document.getElementById('search-results');
+    if(!articles.length){
+      grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-light)"><div style="font-size:48px;margin-bottom:16px">🔍</div><p>لم يتم العثور على نتائج لـ "${q}"</p><a href="/" style="display:inline-block;margin-top:16px;background:var(--primary);color:white;padding:10px 24px;border-radius:40px;font-weight:700;text-decoration:none">العودة للرئيسية</a></div>`;
+      return;
+    }
+    grid.innerHTML=articles.map(a=>{
+      const cat=a.category||'local-news';
+      const icon=CAT_ICONS[cat]||'📰';
+      const imgHtml=a.image?`<img class="article-card-thumb" src="${a.image}" alt="" loading="lazy">`:`<div class="article-card-thumb-placeholder">${icon}</div>`;
+      return`<a href="/article?id=${a.slug||a.id}" class="article-card">${imgHtml}<div class="article-card-body"><span class="article-cat-badge">${CAT_LABELS[cat]||'أخبار'}</span><h2 class="article-card-title">${esc(a.title)}</h2><div class="article-card-meta"><span>${fmt(a.createdAt)}</span></div></div></a>`;
+    }).join('');
+  }catch(e){document.getElementById('results-count').textContent='حدث خطأ في البحث';}
+}
+
+function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmt(ds){if(!ds)return'';try{const d=new Date(ds),months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];return`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;}catch{return'';}}
+
+doSearch();
+</script>
+</body>
+</html>

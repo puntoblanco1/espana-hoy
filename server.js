@@ -1,102 +1,338 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 
-const PUBLIC_DIR = path.join(__dirname, 'public');
-const DATA_DIR = '/tmp';
-const DB_PATH = path.join(DATA_DIR, 'db.json');
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify({ articles: [] }));
+// ============================================================
+// DATABASE
+// ============================================================
+const DB_PATH = process.env.DB_PATH || '/data/db.json';
+const DB_LOCAL = path.join(__dirname, 'db.json');
 
-let db = { articles: [] };
-try {
-  db = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
-} catch (e) { console.error('DB read error:', e); }
-
-function saveDB() {
-  try { fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2)); } 
-  catch (e) { console.error('DB save error:', e); }
+function getDB() {
+  const dbFile = fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL;
+  try {
+    if (fs.existsSync(dbFile)) {
+      return JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+    }
+  } catch(e) { console.error('DB read error:', e); }
+  return { articles: [], pending: [], analytics: [] };
 }
 
-app.use(express.json());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  next();
-});
+function saveDB(data) {
+  const dbFile = fs.existsSync(path.dirname(DB_PATH)) ? DB_PATH : DB_LOCAL;
+  try { fs.writeFileSync(dbFile, JSON.stringify(data, null, 2)); } 
+  catch(e) { console.error('DB write error:', e); }
+}
 
-// API Routes
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', articles: db.articles.length });
-});
+// ============================================================
+// API — ARTICLES
+// ============================================================
 
-app.get('/api/articles', (req, res) => res.json(db.articles));
+// GET /api/articles
+app.get('/api/articles', (req, res) => {
+  const db = getDB();
+  let articles = db.articles || [];
+  const { category, limit = 20, offset = 0, status, search } = req.query;
 
-app.get('/api/articles/:slug', (req, res) => {
-  const article = db.articles.find(a => a.slug === req.params.slug);
-  article ? res.json(article) : res.status(404).json({ error: 'Not found' });
-});
+  if (status) articles = articles.filter(a => a.status === status);
+  else articles = articles.filter(a => a.status === 'published' || !a.status);
 
-app.post('/api/fix-articles', (req, res) => {
-  if (db.articles.length === 0) {
-    db.articles = [
-      {
-        id: '1', slug: 'spain-minimum-wage-2024',
-        title: 'بشرى للعاملين في إسبانيا: رفع الحد الأدنى للأجور إلى 1134 يورو',
-        category: 'Jobs', excerpt: 'خبر سار لكل العاملين في إسبانيا! 🇪🇸 زيادة رسمية في الحد الأدنى للأجور.',
-        image: 'https://image.pollinations.ai/prompt/Spain%20minimum%20wage%20euro?width=800&height=400&nologo=true',
-        createdAt: new Date().toISOString(), status: 'published', facebookPublished: true
-      },
-      {
-        id: '2', slug: 'spain-cheap-cities-2026',
-        title: 'وداعاً لغلاء مدريد: أرخص 5 مدن للسكن في إسبانيا 2026',
-        category: 'Housing', excerpt: 'هل أسعار مدريد وبرشلونة صدمتك؟ اكتشف 5 مدن سرية بإيجارات رخيصة!',
-        image: 'https://image.pollinations.ai/prompt/Spain%20cheap%20cities%20housing?width=800&height=400&nologo=true',
-        createdAt: new Date().toISOString(), status: 'published', facebookPublished: true
-      },
-      {
-        id: '3', slug: 'spain-digital-nomad-visa',
-        title: 'تأشيرة النوماد الرقمي في إسبانيا 2026: كل ما تحتاجه',
-        category: 'Immigration', excerpt: '2300 يورو فقط شهرياً للحصول على إقامة إسبانيا كnomad رقمي!',
-        image: 'https://image.pollinations.ai/prompt/Spain%20digital%20nomad%20visa%20laptop?width=800&height=400&nologo=true',
-        createdAt: new Date().toISOString(), status: 'published', facebookPublished: false
-      }
-    ];
-    saveDB();
-    res.json({ success: true, count: 3 });
-  } else {
-    res.json({ success: true, count: db.articles.length, message: 'Already exists' });
+  if (category && category !== 'all') {
+    articles = articles.filter(a => a.category === category);
   }
+
+  if (search) {
+    const q = search.toLowerCase();
+    articles = articles.filter(a =>
+      (a.title||'').toLowerCase().includes(q) ||
+      (a.contentAr||a.content||'').toLowerCase().includes(q)
+    );
+  }
+
+  // Sort newest first
+  articles.sort((a, b) => new Date(b.createdAt||b.publishedAt||0) - new Date(a.createdAt||a.publishedAt||0));
+
+  const total = articles.length;
+  const paginated = articles.slice(Number(offset), Number(offset) + Number(limit));
+
+  res.json({ articles: paginated, total, offset: Number(offset), limit: Number(limit) });
 });
 
-app.get('/sitemap.xml', (req, res) => {
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
-  xml += '  <url><loc>https://espana-hoy-production-9f6e.up.railway.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>\n';
-  db.articles.forEach(a => {
-    xml += `  <url><loc>https://espana-hoy-production-9f6e.up.railway.app/article/${a.slug}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;
+// GET /api/articles/:id  (by id or slug)
+app.get('/api/articles/:id', (req, res) => {
+  const db = getDB();
+  const articles = db.articles || [];
+  const { id } = req.params;
+  const article = articles.find(a => a.id === id || a.slug === id);
+  if (!article) return res.status(404).json({ error: 'Article not found' });
+  res.json(article);
+});
+
+// POST /api/articles/:id/view  — increment view count
+app.post('/api/articles/:id/view', (req, res) => {
+  const db = getDB();
+  const articles = db.articles || [];
+  const idx = articles.findIndex(a => a.id === req.params.id || a.slug === req.params.id);
+  if (idx !== -1) {
+    articles[idx].views = (articles[idx].views || 0) + 1;
+    db.articles = articles;
+    saveDB(db);
+  }
+  res.json({ ok: true });
+});
+
+// POST /api/articles — create article (webhook from n8n)
+app.post('/api/articles', (req, res) => {
+  const db = getDB();
+  if (!db.articles) db.articles = [];
+  const article = {
+    id: req.body.id || `art_${Date.now()}`,
+    slug: req.body.slug || slugify(req.body.title || ''),
+    title: req.body.title || '',
+    summary: req.body.summary || req.body.excerpt || '',
+    contentAr: req.body.contentAr || req.body.content || '',
+    contentEs: req.body.contentEs || '',
+    category: req.body.category || 'local-news',
+    image: req.body.image || '',
+    tags: req.body.tags || [],
+    faq: req.body.faq || [],
+    status: req.body.status || 'published',
+    views: 0,
+    createdAt: req.body.createdAt || new Date().toISOString(),
+    publishedAt: req.body.publishedAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    source: req.body.source || '',
+    sourceUrl: req.body.sourceUrl || '',
+    facebookPost: req.body.facebookPost || ''
+  };
+
+  // Avoid duplicates
+  const existing = db.articles.findIndex(a => a.id === article.id || a.slug === article.slug);
+  if (existing !== -1) {
+    db.articles[existing] = { ...db.articles[existing], ...article, updatedAt: new Date().toISOString() };
+  } else {
+    db.articles.unshift(article);
+  }
+
+  saveDB(db);
+  res.json({ ok: true, article });
+});
+
+// PUT /api/articles/:id — update article
+app.put('/api/articles/:id', (req, res) => {
+  const db = getDB();
+  const idx = (db.articles||[]).findIndex(a => a.id === req.params.id || a.slug === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  db.articles[idx] = { ...db.articles[idx], ...req.body, updatedAt: new Date().toISOString() };
+  saveDB(db);
+  res.json({ ok: true, article: db.articles[idx] });
+});
+
+// DELETE /api/articles/:id
+app.delete('/api/articles/:id', (req, res) => {
+  const db = getDB();
+  db.articles = (db.articles||[]).filter(a => a.id !== req.params.id && a.slug !== req.params.id);
+  saveDB(db);
+  res.json({ ok: true });
+});
+
+// ============================================================
+// API — PENDING (articles waiting for review)
+// ============================================================
+app.get('/api/pending', (req, res) => {
+  const db = getDB();
+  res.json({ pending: db.pending || [] });
+});
+
+app.post('/api/pending', (req, res) => {
+  const db = getDB();
+  if (!db.pending) db.pending = [];
+  const item = { ...req.body, id: req.body.id||`pnd_${Date.now()}`, createdAt: new Date().toISOString() };
+  db.pending.push(item);
+  saveDB(db);
+  res.json({ ok: true, item });
+});
+
+// ============================================================
+// API — ANALYTICS
+// ============================================================
+app.get('/api/analytics', (req, res) => {
+  const db = getDB();
+  res.json({ analytics: db.analytics || [] });
+});
+
+app.post('/api/analytics', (req, res) => {
+  const db = getDB();
+  if (!db.analytics) db.analytics = [];
+  db.analytics.push({ ...req.body, createdAt: new Date().toISOString() });
+  if (db.analytics.length > 1000) db.analytics = db.analytics.slice(-1000);
+  saveDB(db);
+  res.json({ ok: true });
+});
+
+// ============================================================
+// API — STATS
+// ============================================================
+app.get('/api/stats', (req, res) => {
+  const db = getDB();
+  const articles = (db.articles||[]).filter(a => a.status==='published'||!a.status);
+  const cats = {};
+  articles.forEach(a => { cats[a.category||'other'] = (cats[a.category||'other']||0)+1; });
+  res.json({
+    totalArticles: articles.length,
+    totalViews: articles.reduce((s,a)=>s+(a.views||0),0),
+    categories: cats,
+    lastUpdated: articles[0]?.createdAt || null
   });
-  xml += '</urlset>';
-  res.header('Content-Type', 'application/xml');
-  res.send(xml);
+});
+
+// ============================================================
+// WEBHOOK — n8n article webhook (backward compat)
+// ============================================================
+app.post('/webhook/article', (req, res) => {
+  // Same as POST /api/articles but for n8n
+  const db = getDB();
+  if (!db.articles) db.articles = [];
+  const body = req.body;
+  const article = {
+    id: body.id || `art_${Date.now()}`,
+    slug: body.slug || slugify(body.title || ''),
+    title: body.title || '',
+    summary: body.summary || body.excerpt || '',
+    contentAr: body.contentAr || body.content || '',
+    contentEs: body.contentEs || '',
+    category: body.category || 'local-news',
+    image: body.image || body.imageUrl || '',
+    tags: body.tags || [],
+    faq: body.faq || [],
+    status: 'published',
+    views: 0,
+    createdAt: body.createdAt || new Date().toISOString(),
+    publishedAt: body.publishedAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    source: body.source || '',
+    sourceUrl: body.sourceUrl || body.url || '',
+    facebookPost: body.facebookPost || '',
+    score: body.score || 0
+  };
+
+  const existing = db.articles.findIndex(a => a.id===article.id||a.slug===article.slug);
+  if (existing !== -1) {
+    db.articles[existing] = { ...db.articles[existing], ...article };
+  } else {
+    db.articles.unshift(article);
+    // Keep max 500 articles
+    if (db.articles.length > 500) db.articles = db.articles.slice(0, 500);
+  }
+
+  saveDB(db);
+  console.log(`✅ Article saved: ${article.title}`);
+  res.json({ ok: true, id: article.id, slug: article.slug });
+});
+
+// ============================================================
+// PAGE ROUTES
+// ============================================================
+const PUBLIC = path.join(__dirname, 'public');
+
+app.get('/', (req, res) => res.sendFile(path.join(PUBLIC, 'index.html')));
+app.get('/article', (req, res) => res.sendFile(path.join(PUBLIC, 'article.html')));
+app.get('/about', (req, res) => res.sendFile(path.join(PUBLIC, 'about.html')));
+app.get('/contact', (req, res) => res.sendFile(path.join(PUBLIC, 'contact.html')));
+app.get('/privacy', (req, res) => res.sendFile(path.join(PUBLIC, 'privacy.html')));
+app.get('/search', (req, res) => res.sendFile(path.join(PUBLIC, 'search.html')));
+
+// Category routes — serve category.html for all /category/* paths
+app.get('/category/:cat', (req, res) => {
+  res.sendFile(path.join(PUBLIC, 'category.html'));
+});
+
+// Slug-based article routes /article/:slug
+app.get('/article/:slug', (req, res) => {
+  res.redirect(`/article?id=${req.params.slug}`);
+});
+
+// ============================================================
+// SEO FILES
+// ============================================================
+app.get('/sitemap.xml', (req, res) => {
+  const db = getDB();
+  const articles = (db.articles||[]).filter(a=>a.status==='published'||!a.status);
+  const baseUrl = process.env.SITE_URL || 'https://espana-hoy-production.up.railway.app';
+
+  const staticUrls = ['/', '/about', '/contact', '/privacy',
+    '/category/immigration','/category/residency','/category/jobs',
+    '/category/housing','/category/education','/category/cost-of-living',
+    '/category/government-benefits','/category/crime-safety',
+    '/category/local-news','/category/tourism','/category/business'
+  ].map(u => `
+  <url>
+    <loc>${baseUrl}${u}</loc>
+    <changefreq>${u==='/'?'hourly':'weekly'}</changefreq>
+    <priority>${u==='/'?'1.0':'0.8'}</priority>
+  </url>`).join('');
+
+  const articleUrls = articles.slice(0,200).map(a => `
+  <url>
+    <loc>${baseUrl}/article?id=${a.slug||a.id}</loc>
+    <lastmod>${(a.updatedAt||a.createdAt||'').split('T')[0]||new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`).join('');
+
+  res.setHeader('Content-Type','application/xml');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticUrls}
+${articleUrls}
+</urlset>`);
 });
 
 app.get('/robots.txt', (req, res) => {
-  res.type('text/plain');
-  res.send('User-agent: *\nDisallow: /webhook/\nAllow: /\nSitemap: https://espana-hoy-production-9f6e.up.railway.app/sitemap.xml');
+  const baseUrl = process.env.SITE_URL || 'https://espana-hoy-production.up.railway.app';
+  res.type('text/plain').send(
+`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /webhook/
+
+Sitemap: ${baseUrl}/sitemap.xml`
+  );
 });
 
-// Static files
-app.use(express.static(PUBLIC_DIR));
+// Health check
+app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-// Fallback to index.html for all other routes
-app.get('*', (req, res) => {
-  const filePath = req.path.startsWith('/article/') ? 'article.html' : 'index.html';
-  res.sendFile(path.join(PUBLIC_DIR, filePath));
+// ============================================================
+// 404 fallback
+// ============================================================
+app.use((req, res) => {
+  if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
+  res.status(404).sendFile(path.join(PUBLIC, 'index.html'));
 });
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}, articles: ${db.articles.length}`));
+// ============================================================
+// HELPERS
+// ============================================================
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .replace(/[\u0600-\u06FF\s]+/g, match => match.replace(/\s+/g, '-'))
+    .replace(/[^\u0600-\u06FFa-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .substring(0, 80) || `article-${Date.now()}`;
+}
+
+// ============================================================
+// START
+// ============================================================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 إسبانيا اليوم running on port ${PORT}`);
+  console.log(`📁 DB: ${fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL}`);
+});
