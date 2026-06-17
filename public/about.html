@@ -3,15 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>عن الموقع | إسبانيا اليوم</title>
-  <meta name="description" content="تعرّف على موقع إسبانيا اليوم | España Hoy - منصتك العربية الأولى لأخبار إسبانيا">
+  <title>من نحن | إسبانيا اليوم — España Hoy</title>
+  <meta name="description" content="إسبانيا اليوم منصة إخبارية عربية متخصصة في أخبار إسبانيا للجالية العربية المقيمة في إسبانيا. نغطي الهجرة، الإقامة، الوظائف، السكن، التعليم وكل ما يهم العرب في إسبانيا.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://espana-hoy-production.up.railway.app/about">
+  <meta property="og:title" content="من نحن | إسبانيا اليوم">
+  <meta property="og:description" content="منصة إخبارية عربية متخصصة في أخبار إسبانيا للجالية العربية">
+  <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="/css/main.css">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"AboutPage","name":"من نحن — إسبانيا اليوم","url":"https://espana-hoy-production.up.railway.app/about","description":"منصة إخبارية عربية متخصصة في أخبار إسبانيا للجالية العربية المقيمة في إسبانيا","publisher":{"@type":"Organization","name":"إسبانيا اليوم | España Hoy","url":"https://espana-hoy-production.up.railway.app","foundingDate":"2025","inLanguage":"ar"}}
+  </script>
 </head>
 <body>
 <div class="top-bar">
@@ -19,6 +25,7 @@
     <div class="date-time"><span id="current-date"></span></div>
     <div class="top-social">
       <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" target="_blank" rel="noopener" aria-label="إنستجرام"><i class="fab fa-instagram"></i></a>
     </div>
   </div>
 </div>
@@ -29,65 +36,107 @@
         <div class="logo-icon">إ</div>
         <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
       </a>
+      <div class="header-search">
+        <input type="text" id="search-input" placeholder="ابحث في الأخبار..." autocomplete="off">
+        <button class="search-btn" onclick="doSearch()" aria-label="بحث"><i class="fas fa-search"></i></button>
+      </div>
       <div class="header-actions">
         <button class="dark-toggle" id="dark-toggle" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
       </div>
     </div>
   </div>
 </header>
-<nav class="main-nav" role="navigation">
+<nav class="main-nav" role="navigation" aria-label="التنقل الرئيسي">
   <div class="container">
-    <ul class="nav-menu">
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="القائمة"><i class="fas fa-bars"></i></button>
+    <ul class="nav-menu" id="nav-menu">
       <li class="nav-item"><a href="/">الرئيسية</a></li>
       <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
+      <li class="nav-item"><a href="/category/residency">الإقامة</a></li>
       <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
+      <li class="nav-item"><a href="/category/housing">السكن</a></li>
       <li class="nav-item"><a href="/about" class="active">عن الموقع</a></li>
       <li class="nav-item"><a href="/contact">اتصل بنا</a></li>
     </ul>
   </div>
 </nav>
-
-<div class="container">
-  <div class="static-page">
-    <h1>ℹ️ عن إسبانيا اليوم</h1>
-    <p class="page-lead">منصتك العربية الأولى لمتابعة أخبار إسبانيا — نوصلك بكل ما تحتاجه للعيش والنجاح في إسبانيا.</p>
-
-    <h2>من نحن</h2>
-    <p><strong>إسبانيا اليوم | España Hoy</strong> منصة إخبارية عربية متخصصة في تغطية أهم الأخبار والمستجدات التي تهم العرب المقيمين في إسبانيا أو الراغبين في الهجرة إليها.</p>
-    <p>ننشر يومياً أخبار موثوقة ومحللة باللغة العربية في مجالات الهجرة، الإقامة، الوظائف، السكن، التعليم، وتكلفة المعيشة.</p>
-
-    <h2>رسالتنا</h2>
-    <p>نهدف إلى تقريب المسافة بين العرب وإسبانيا، من خلال تقديم معلومات دقيقة وحديثة تساعدهم على اتخاذ القرارات الصحيحة في حياتهم اليومية.</p>
-
-    <h2>ما نغطيه</h2>
-    <ul>
-      <li>✈️ <strong>الهجرة:</strong> قوانين الهجرة، أنواع التأشيرات، إجراءات الدخول</li>
-      <li>📋 <strong>الإقامة:</strong> أنواع بطاقات الإقامة، التجديد، الحصول على الجنسية</li>
-      <li>💼 <strong>الوظائف:</strong> فرص العمل، الرواتب، حقوق العمال</li>
-      <li>🏠 <strong>السكن:</strong> الإيجار، الشراء، أسعار العقارات</li>
-      <li>📚 <strong>التعليم:</strong> المدارس، الجامعات، الدراسة في إسبانيا</li>
-      <li>💰 <strong>تكلفة المعيشة:</strong> الأسعار، الميزانية، نصائح التوفير</li>
-      <li>🏛️ <strong>المزايا الحكومية:</strong> الإعانات، الدعم الاجتماعي، الخدمات</li>
-      <li>🛡️ <strong>الأمن والسلامة:</strong> الأخبار الأمنية والنصائح</li>
-      <li>🗺️ <strong>السياحة:</strong> الأماكن السياحية، النصائح، التجارب</li>
-      <li>💹 <strong>الأعمال:</strong> ريادة الأعمال، الاستثمار، الشركات</li>
-    </ul>
-
-    <h2>التزامنا بالدقة</h2>
-    <p>نحرص على نشر محتوى موثوق ومحدث، ونعتمد على مصادر رسمية إسبانية وأوروبية. نراجع محتوانا بشكل دوري لضمان دقته وحداثته.</p>
-
-    <h2>سياسة المحتوى</h2>
-    <p>نلتزم بمعايير الصحافة المسؤولة والمهنية. لا ننشر محتوى مضللاً أو مسيئاً، ونحترم الخصوصية والحقوق الفكرية. إذا وجدت أي خطأ أو محتوى مسيء، يرجى <a href="/contact" style="color:var(--primary)">إبلاغنا فوراً</a>.</p>
-
-    <h2>تواصل معنا</h2>
-    <p>نسعد بتواصلك معنا لأي استفسار أو مقترح أو تعاون. زر صفحة <a href="/contact" style="color:var(--primary)">اتصل بنا</a> أو تابعنا على:</p>
-    <ul>
-      <li>📘 <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener" style="color:var(--primary)">فيسبوك: إسبانيا اليوم</a></li>
-    </ul>
+<div class="mobile-nav-overlay" id="mobile-overlay"></div>
+<div class="mobile-nav-panel" id="mobile-panel">
+  <div class="mobile-nav-header"><span>إسبانيا اليوم</span><button class="mobile-close" id="mobile-close">✕</button></div>
+  <div class="mobile-nav-links">
+    <a href="/">🏠 الرئيسية</a><a href="/category/immigration">✈️ الهجرة</a>
+    <a href="/category/residency">📋 الإقامة</a><a href="/category/jobs">💼 الوظائف</a>
+    <a href="/category/housing">🏠 السكن</a><a href="/category/education">📚 التعليم</a>
+    <a href="/about">ℹ️ عن الموقع</a><a href="/contact">📩 اتصل بنا</a>
+    <a href="/privacy">🔒 سياسة الخصوصية</a>
   </div>
 </div>
 
-<footer class="main-footer">
+<div class="container">
+  <div class="static-page">
+
+    <h1>من نحن — إسبانيا اليوم</h1>
+    <p class="page-lead">منصتك العربية الأولى للأخبار والمعلومات المتعلقة بالحياة في إسبانيا</p>
+
+    <h2>رسالتنا</h2>
+    <p>
+      <strong>إسبانيا اليوم | España Hoy</strong> هي منصة إخبارية عربية مستقلة تأسست لخدمة الجالية العربية المقيمة في إسبانيا والراغبين في الهجرة إليها. نسعى إلى تقديم معلومات دقيقة، موثوقة، وحديثة تساعد العرب في إسبانيا على اتخاذ القرارات الصحيحة في حياتهم اليومية.
+    </p>
+    <p>
+      نؤمن بأن المعلومات الجيدة باللغة العربية حق للجميع، ولهذا نعمل يومياً على توفير تغطية شاملة تشمل أخبار الهجرة والإقامة، سوق العمل، السكن، التعليم، وكل ما يحتاجه العربي ليعيش ويزدهر في إسبانيا.
+    </p>
+
+    <h2>ما نقدمه</h2>
+    <p>تغطي منصتنا 11 تصنيفاً رئيسياً تهم الجالية العربية في إسبانيا:</p>
+    <ul>
+      <li><strong>الهجرة والتأشيرات</strong> — أحدث قوانين الهجرة، طرق الدخول، والإجراءات القانونية</li>
+      <li><strong>الإقامة</strong> — تجديد الإقامة، الفيزا الذهبية، والإقامة الدائمة</li>
+      <li><strong>الوظائف والرواتب</strong> — فرص العمل، متوسطات الرواتب، وحقوق العمال</li>
+      <li><strong>السكن</strong> — أسعار الإيجار، حقوق المستأجر، ومناطق السكن المناسبة</li>
+      <li><strong>التعليم</strong> — المدارس، الجامعات، وتسجيل الأطفال</li>
+      <li><strong>تكلفة المعيشة</strong> — ميزانية الحياة الشهرية، أسعار البقالة، والمواصلات</li>
+      <li><strong>المزايا الحكومية</strong> — إعانات البطالة، الدعم الحكومي، والضمان الاجتماعي</li>
+      <li><strong>الأمن والسلامة</strong> — الجريمة، أرقام الطوارئ، وحماية المقيمين</li>
+      <li><strong>الأخبار المحلية</strong> — أهم الأحداث في إسبانيا يومياً</li>
+      <li><strong>السياحة</strong> — أجمل الوجهات الإسبانية وأدلة السفر</li>
+      <li><strong>الأعمال والاستثمار</strong> — فتح الشركات، الفرص الاستثمارية، وريادة الأعمال</li>
+    </ul>
+
+    <h2>فريقنا</h2>
+    <p>
+      يعمل في إسبانيا اليوم فريق من المحررين والمتخصصين الذين يعيشون في إسبانيا ويفهمون احتياجات الجالية العربية من الداخل. نحرص على التحقق من المعلومات والرجوع إلى المصادر الرسمية الإسبانية لضمان دقة ما ننشر.
+    </p>
+
+    <h2>مبادئنا التحريرية</h2>
+    <ul>
+      <li><strong>الدقة</strong> — نتحقق من كل معلومة قبل نشرها ونشير إلى المصادر الرسمية</li>
+      <li><strong>الحياد</strong> — نقدم الأخبار بموضوعية بعيداً عن التحيزات السياسية</li>
+      <li><strong>الشفافية</strong> — نوضح مصادرنا ونصحح أخطاءنا بشفافية</li>
+      <li><strong>الاحترافية</strong> — نلتزم بأعلى معايير الصحافة والنشر الإلكتروني</li>
+      <li><strong>خدمة المجتمع</strong> — هدفنا خدمة الجالية العربية وليس مجرد الربح</li>
+    </ul>
+
+    <h2>التواصل والإعلان</h2>
+    <p>
+      للتواصل مع فريق التحرير، أو الإبلاغ عن خطأ، أو الاستفسار عن فرص الإعلان على منصتنا، يرجى زيارة صفحة <a href="/contact" style="color:var(--primary);font-weight:700">اتصل بنا</a>.
+    </p>
+    <p>
+      الموقع يعتمد في تمويله على الإعلانات الرقمية عبر Google AdSense. نلتزم بالفصل التام بين المحتوى التحريري ومحتوى الإعلانات.
+    </p>
+
+    <h2>معلومات الموقع</h2>
+    <ul>
+      <li><strong>الاسم:</strong> إسبانيا اليوم | España Hoy</li>
+      <li><strong>اللغة:</strong> العربية</li>
+      <li><strong>الموضوع:</strong> أخبار وحياة الجالية العربية في إسبانيا</li>
+      <li><strong>الموقع الجغرافي:</strong> إسبانيا</li>
+      <li><strong>سياسة الخصوصية:</strong> <a href="/privacy" style="color:var(--primary)">اقرأ سياسة الخصوصية</a></li>
+    </ul>
+
+  </div>
+</div>
+
+<footer class="main-footer" role="contentinfo">
   <div class="footer-bottom">
     <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
       <span>© <span id="year"></span> إسبانيا اليوم | España Hoy — جميع الحقوق محفوظة</span>
@@ -99,18 +148,33 @@
     </div>
   </div>
 </footer>
-
+<button class="back-top" id="back-top" aria-label="العودة للأعلى"><i class="fas fa-chevron-up"></i></button>
+<div class="toast" id="toast"></div>
 <script>
-document.getElementById('year').textContent=new Date().getFullYear();
-const d=new Date(),months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-document.getElementById('current-date').textContent=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-const saved=localStorage.getItem('theme')||'light';
-document.documentElement.setAttribute('data-theme',saved);
-document.getElementById('dark-toggle').addEventListener('click',()=>{
-  const c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
-  document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);
-  document.getElementById('dark-toggle').innerHTML=n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
-});
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('dark-toggle').innerHTML = saved==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+  document.getElementById('dark-toggle').addEventListener('click', () => {
+    const c = document.documentElement.getAttribute('data-theme');
+    const n = c==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme', n);
+    localStorage.setItem('theme', n);
+    document.getElementById('dark-toggle').innerHTML = n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+  });
+  const d = new Date();
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  document.getElementById('current-date').textContent = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  // Mobile nav
+  const h=document.getElementById('nav-hamburger'), o=document.getElementById('mobile-overlay'), p=document.getElementById('mobile-panel'), c=document.getElementById('mobile-close');
+  if(h){const open=()=>{o.classList.add('open');p.classList.add('open');};const close=()=>{o.classList.remove('open');p.classList.remove('open');};h.addEventListener('click',open);o.addEventListener('click',close);c.addEventListener('click',close);}
+  // Back top
+  const bt=document.getElementById('back-top');
+  window.addEventListener('scroll',()=>bt.classList.toggle('visible',window.scrollY>400));
+  bt.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  // Search
+  function doSearch(){const q=document.getElementById('search-input').value.trim();if(q)window.location.href=`/search?q=${encodeURIComponent(q)}`;}
+  document.getElementById('search-input').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
 </script>
 </body>
 </html>

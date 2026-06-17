@@ -9,6 +9,10 @@ const CAT_LABELS = {
   'local-news':'أخبار محلية', tourism:'السياحة', business:'الأعمال'
 };
 
+function imgUrl(a) {
+  return a.image || a.image_url || a.imageUrl || '';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   setDate();
   initDarkMode();
@@ -43,7 +47,8 @@ function updateDarkIcon(t) {
 }
 
 function initMobileNav() {
-  const h=document.getElementById('nav-hamburger'), o=document.getElementById('mobile-overlay'), p=document.getElementById('mobile-panel'), c=document.getElementById('mobile-close');
+  const h=document.getElementById('nav-hamburger'), o=document.getElementById('mobile-overlay'),
+        p=document.getElementById('mobile-panel'), c=document.getElementById('mobile-close');
   const open=()=>{o.classList.add('open');p.classList.add('open');document.body.style.overflow='hidden';};
   const close=()=>{o.classList.remove('open');p.classList.remove('open');document.body.style.overflow='';};
   h.addEventListener('click',open); o.addEventListener('click',close); c.addEventListener('click',close);
@@ -64,9 +69,16 @@ function doSearch() {
 }
 
 async function loadArticle() {
+  // Support both /article/slug and /article?id=slug
+  const pathParts = window.location.pathname.split('/');
+  const pathSlug = pathParts[pathParts.length - 1];
   const params = new URLSearchParams(window.location.search);
-  const id = params.get('id') || params.get('slug');
-  if (!id) { show404(); return; }
+  const id = pathSlug || params.get('id') || params.get('slug');
+
+  if (!id || id === 'article') { show404(); return; }
+
+  // Reading progress bar
+  initReadingProgress();
 
   try {
     const res = await fetch(`/api/articles/${id}`);
@@ -80,36 +92,62 @@ async function loadArticle() {
   }
 }
 
+function initReadingProgress() {
+  const bar = document.createElement('div');
+  bar.id = 'reading-progress';
+  bar.style.cssText = 'position:fixed;top:0;right:0;height:3px;background:var(--primary);z-index:9999;width:0%;transition:width 0.1s;';
+  document.body.appendChild(bar);
+  window.addEventListener('scroll', () => {
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = total > 0 ? (window.scrollY / total * 100) + '%' : '0%';
+  });
+}
+
 function renderArticle(a) {
   const cat = a.category || 'local-news';
   const catLabel = CAT_LABELS[cat] || 'أخبار';
   const url = window.location.href;
-  const title = a.title || '';
-  const summary = a.summary || a.excerpt || '';
-  const content = a.contentAr || a.content || '';
+  const title = a.title || a.arabic_title || '';
+  const summary = a.summary || a.arabic_summary || a.excerpt || '';
+  const content = a.contentAr || a.arabic_content || a.content || '';
   const faq = a.faq || [];
+  const slug = a.arabic_slug || a.slug || a.id;
+  const canonicalUrl = `https://espana-hoy-production.up.railway.app/article/${slug}`;
 
   // Set meta
   document.getElementById('page-title').textContent = `${title} | إسبانيا اليوم`;
   document.getElementById('page-desc').setAttribute('content', summary);
   document.getElementById('og-title').setAttribute('content', title);
   document.getElementById('og-desc').setAttribute('content', summary);
-  document.getElementById('og-url').setAttribute('content', url);
-  if (a.image) document.getElementById('og-img').setAttribute('content', a.image);
+  document.getElementById('og-url').setAttribute('content', canonicalUrl);
+  const aImg = imgUrl(a);
+  if (aImg) document.getElementById('og-img').setAttribute('content', aImg);
 
-  // Structured data for article
+  // Canonical
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (!canonical) { canonical = document.createElement('link'); canonical.rel='canonical'; document.head.appendChild(canonical); }
+  canonical.href = canonicalUrl;
+
+  // Structured data
   const sd = {
-    "@context":"https://schema.org",
-    "@type":"NewsArticle",
-    "headline": title,
-    "description": summary,
+    "@context":"https://schema.org","@type":"NewsArticle",
+    "headline": title, "description": summary,
     "datePublished": a.createdAt || a.publishedAt,
     "dateModified": a.updatedAt || a.createdAt,
     "author": {"@type":"Organization","name":"إسبانيا اليوم"},
-    "publisher": {"@type":"Organization","name":"إسبانيا اليوم","url":"https://espana-hoy-production.up.railway.app"},
-    "mainEntityOfPage": url,
-    "image": a.image || ""
+    "publisher": {"@type":"Organization","name":"إسبانيا اليوم",
+      "logo":{"@type":"ImageObject","url":"https://espana-hoy-production.up.railway.app/logo.png"},
+      "url":"https://espana-hoy-production.up.railway.app"},
+    "mainEntityOfPage": canonicalUrl,
+    "image": aImg || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800"
   };
+  if (faq.length) {
+    sd["@type"] = ["NewsArticle","FAQPage"];
+    sd.mainEntity = faq.map(f=>({
+      "@type":"Question","name":f.q||f.question,
+      "acceptedAnswer":{"@type":"Answer","text":f.a||f.answer}
+    }));
+  }
   const sdScript = document.createElement('script');
   sdScript.type = 'application/ld+json';
   sdScript.textContent = JSON.stringify(sd);
@@ -120,26 +158,29 @@ function renderArticle(a) {
   const tagsHtml = tags.length
     ? `<div class="tags-wrap">${tags.map(t=>`<span class="tag">#${escHtml(t)}</span>`).join('')}</div>` : '';
 
-  // FAQ
+  // FAQ — use innerHTML so HTML renders, but sanitize text-only fields
   const faqHtml = faq.length ? `
     <div class="faq-section">
       <h2>أسئلة شائعة</h2>
-      ${faq.map((f,i)=>`
-        <div class="faq-item" id="faq-${i}">
-          <div class="faq-q" onclick="toggleFaq(${i})">${escHtml(f.q || f.question)}<span class="arrow">▾</span></div>
-          <div class="faq-a">${escHtml(f.a || f.answer)}</div>
-        </div>`).join('')}
+      ${faq.map((f,i)=>{
+        const q = f.q || f.question || '';
+        const ans = f.a || f.answer || '';
+        return `<div class="faq-item" id="faq-${i}">
+          <div class="faq-q" onclick="toggleFaq(${i})">${escHtml(q)}<span class="arrow">▾</span></div>
+          <div class="faq-a">${escHtml(ans)}</div>
+        </div>`;
+      }).join('')}
     </div>` : '';
 
-  const imgHtml = a.image
-    ? `<img class="article-hero-img" src="${a.image}" alt="${escHtml(title)}" loading="eager">`
+  const imgHtml = aImg
+    ? `<img class="article-hero-img" src="${aImg}" alt="${escHtml(title)}" loading="eager" onerror="this.style.display='none'">`
     : '';
 
   document.getElementById('article-main').innerHTML = `
     <nav class="article-breadcrumb" aria-label="مسار التنقل">
       <a href="/">الرئيسية</a><span>/</span>
       <a href="/category/${cat}">${catLabel}</a><span>/</span>
-      <span>${title.substring(0,50)}${title.length>50?'...':''}</span>
+      <span>${escHtml(title.substring(0,50))}${title.length>50?'...':''}</span>
     </nav>
 
     <span class="article-cat-badge" style="font-size:12px;margin-bottom:12px;display:inline-block">${catLabel}</span>
@@ -179,16 +220,15 @@ function renderArticle(a) {
 
 function formatContent(html) {
   if (!html) return '<p>المحتوى غير متاح</p>';
-  // If it's plain text, convert newlines to paragraphs
   if (!html.includes('<')) {
     return html.split('\n\n').filter(p=>p.trim()).map(p=>`<p>${escHtml(p.trim())}</p>`).join('');
   }
+  // It's HTML — inject directly (it comes from our own DB, not user input)
   return html;
 }
 
 function toggleFaq(i) {
-  const item = document.getElementById(`faq-${i}`);
-  item.classList.toggle('open');
+  document.getElementById(`faq-${i}`).classList.toggle('open');
 }
 
 function share(platform) {
@@ -208,15 +248,16 @@ function copyLink() {
 
 async function fetchRelated(cat, currentId) {
   try {
-    const res = await fetch(`/api/articles?category=${cat}&limit=5`);
+    const res = await fetch(`/api/articles?category=${cat}&limit=6`);
     const data = await res.json();
-    const articles = (data.articles || data || []).filter(a => (a.slug||a.id) !== currentId).slice(0,5);
+    const articles = (data.articles || data || [])
+      .filter(a => (a.arabic_slug||a.slug||a.id) !== currentId).slice(0,5);
     const list = document.getElementById('related-list');
     if (!articles.length) { list.closest('.widget').style.display='none'; return; }
     list.innerHTML = articles.map((a,i) => `
-      <a href="/article?id=${a.slug||a.id}" class="most-read-item">
+      <a href="/article/${a.arabic_slug||a.slug||a.id}" class="most-read-item">
         <div class="most-read-num">${i+1}</div>
-        <div class="most-read-title">${escHtml(a.title)}</div>
+        <div class="most-read-title">${escHtml(a.title||a.arabic_title)}</div>
       </a>`).join('');
   } catch {}
 }
@@ -260,7 +301,7 @@ function formatDate(ds) {
 }
 
 function readTime(a) {
-  const t=(a.content||a.contentAr||a.body||'');
+  const t=a.content||a.contentAr||a.arabic_content||a.body||'';
   return Math.max(2,Math.ceil(t.split(/\s+/).length/200));
 }
 

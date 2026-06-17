@@ -62,12 +62,12 @@ app.get('/api/articles', (req, res) => {
   res.json({ articles: paginated, total, offset: Number(offset), limit: Number(limit) });
 });
 
-// GET /api/articles/:id  (by id or slug)
+// GET /api/articles/:id  (by id or slug or arabic_slug)
 app.get('/api/articles/:id', (req, res) => {
   const db = getDB();
   const articles = db.articles || [];
   const { id } = req.params;
-  const article = articles.find(a => a.id === id || a.slug === id);
+  const article = articles.find(a => a.id === id || a.slug === id || a.arabic_slug === id);
   if (!article) return res.status(404).json({ error: 'Article not found' });
   res.json(article);
 });
@@ -251,9 +251,9 @@ app.get('/category/:cat', (req, res) => {
   res.sendFile(path.join(PUBLIC, 'category.html'));
 });
 
-// Slug-based article routes /article/:slug
+// Slug-based article routes /article/:slug — serve HTML directly (SEO-friendly)
 app.get('/article/:slug', (req, res) => {
-  res.redirect(`/article?id=${req.params.slug}`);
+  res.sendFile(path.join(PUBLIC, 'article.html'));
 });
 
 // ============================================================
@@ -278,7 +278,7 @@ app.get('/sitemap.xml', (req, res) => {
 
   const articleUrls = articles.slice(0,200).map(a => `
   <url>
-    <loc>${baseUrl}/article?id=${a.slug||a.id}</loc>
+    <loc>${baseUrl}/article/${a.arabic_slug||a.slug||a.id}</loc>
     <lastmod>${(a.updatedAt||a.createdAt||'').split('T')[0]||new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
