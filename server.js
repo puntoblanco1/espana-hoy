@@ -234,6 +234,17 @@ app.post('/webhook/article', (req, res) => {
   res.json({ ok: true, id: article.id, slug: article.slug });
 });
 
+// Seed v2 — 30 new articles
+app.get('/api/seed-v2', (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({ error: 'Forbidden' });
+  try {
+    delete require.cache[require.resolve('./seed-articles-v2.js')];
+    require('./seed-articles-v2.js');
+    const db = getDB();
+    res.json({ ok: true, total: (db.articles || []).length });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ============================================================
 // PAGE ROUTES
 // ============================================================
@@ -341,11 +352,11 @@ app.get('/api/seed-now', (req, res) => {
 });
 
 // ============================================================
-// 404 fallback
+// 404 handler
 // ============================================================
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
-  res.status(404).sendFile(path.join(PUBLIC, 'index.html'));
+  res.status(404).sendFile(path.join(PUBLIC, '404.html'));
 });
 
 // ============================================================

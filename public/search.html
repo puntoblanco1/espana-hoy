@@ -10,103 +10,273 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .search-hero{background:var(--bg-card);border-bottom:1px solid var(--border);padding:32px 0;margin-bottom:32px}
+    .search-hero-inner{max-width:640px;margin:0 auto;text-align:center}
+    .search-hero h1{font-size:22px;font-weight:800;margin-bottom:16px;color:var(--text)}
+    .search-big-box{display:flex;gap:0;border-radius:50px;overflow:hidden;border:2px solid var(--primary);background:var(--bg)}
+    .search-big-box input{flex:1;padding:14px 22px;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:15px;outline:none}
+    .search-big-box button{background:var(--primary);color:white;border:none;padding:14px 24px;cursor:pointer;font-size:15px;font-weight:700;font-family:inherit;transition:.2s}
+    .search-big-box button:hover{opacity:.9}
+    .search-filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+    .search-filter-btn{padding:6px 16px;border-radius:30px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-light);font-size:13px;cursor:pointer;transition:.2s;font-family:inherit}
+    .search-filter-btn.active,.search-filter-btn:hover{background:var(--primary);color:white;border-color:var(--primary)}
+    .results-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+    .results-count{font-size:14px;color:var(--text-light)}
+    .results-count strong{color:var(--primary);font-weight:800}
+    .search-loading{text-align:center;padding:60px 20px;color:var(--text-light)}
+    .search-loading i{font-size:32px;animation:spin 1s linear infinite;color:var(--primary);margin-bottom:12px;display:block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .no-results{text-align:center;padding:60px 20px;color:var(--text-light)}
+    .no-results .no-results-icon{font-size:64px;margin-bottom:16px}
+    .no-results h2{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text)}
+    .suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
+    .suggestion-tag{background:var(--bg-card);border:1px solid var(--border);padding:8px 16px;border-radius:30px;font-size:13px;cursor:pointer;color:var(--text);transition:.2s}
+    .suggestion-tag:hover{background:var(--primary);color:white;border-color:var(--primary)}
+    .highlight{background:rgba(201,31,37,.15);color:var(--primary);border-radius:3px;padding:0 2px;font-weight:700}
+  </style>
 </head>
 <body>
-<div class="top-bar">
-  <div class="container"><div class="date-time"><span id="current-date"></span></div></div>
+<div class="top-bar"><div class="container">
+  <div class="date-time"><span id="current-date"></span></div>
+  <div class="top-social">
+    <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+  </div>
+</div></div>
+
+<header class="main-header"><div class="container"><div class="header-inner">
+  <a href="/" class="logo-wrap" style="text-decoration:none">
+    <div class="logo-icon">إ</div>
+    <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
+  </a>
+  <div class="header-actions">
+    <button class="dark-toggle" id="dark-toggle"><i class="fas fa-moon"></i></button>
+  </div>
+</div></div></header>
+
+<nav class="main-nav"><div class="container">
+  <button class="nav-hamburger" id="nav-hamburger"><i class="fas fa-bars"></i></button>
+  <ul class="nav-menu">
+    <li class="nav-item"><a href="/">الرئيسية</a></li>
+    <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
+    <li class="nav-item"><a href="/category/residency">الإقامة</a></li>
+    <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
+    <li class="nav-item"><a href="/category/housing">السكن</a></li>
+    <li class="nav-item"><a href="/category/education">التعليم</a></li>
+    <li class="nav-item"><a href="/about">عن الموقع</a></li>
+  </ul>
+</div></nav>
+<div class="mobile-nav-overlay" id="mobile-overlay"></div>
+<div class="mobile-nav-panel" id="mobile-panel">
+  <div class="mobile-nav-header"><span>إسبانيا اليوم</span><button class="mobile-close" id="mobile-close">✕</button></div>
+  <div class="mobile-nav-links">
+    <a href="/">🏠 الرئيسية</a><a href="/category/immigration">✈️ الهجرة</a>
+    <a href="/category/residency">📋 الإقامة</a><a href="/category/jobs">💼 الوظائف</a>
+    <a href="/category/housing">🏠 السكن</a><a href="/category/education">📚 التعليم</a>
+    <a href="/about">ℹ️ عن الموقع</a><a href="/contact">📩 اتصل بنا</a>
+  </div>
 </div>
-<header class="main-header">
+
+<div class="search-hero">
   <div class="container">
-    <div class="header-inner">
-      <a href="/" class="logo-wrap" style="text-decoration:none">
-        <div class="logo-icon">إ</div>
-        <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
-      </a>
-      <div class="header-actions">
-        <button class="dark-toggle" id="dark-toggle" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
+    <div class="search-hero-inner">
+      <h1><i class="fas fa-search" style="color:var(--primary)"></i> البحث في إسبانيا اليوم</h1>
+      <div class="search-big-box">
+        <input type="text" id="search-input" placeholder="ابحث عن أخبار الهجرة، الإقامة، الوظائف..." autocomplete="off">
+        <button onclick="doSearch()"><i class="fas fa-search"></i> بحث</button>
+      </div>
+      <div class="search-filters" id="cat-filters">
+        <button class="search-filter-btn active" data-cat="">الكل</button>
+        <button class="search-filter-btn" data-cat="immigration">✈️ الهجرة</button>
+        <button class="search-filter-btn" data-cat="residency">📋 الإقامة</button>
+        <button class="search-filter-btn" data-cat="jobs">💼 الوظائف</button>
+        <button class="search-filter-btn" data-cat="housing">🏠 السكن</button>
+        <button class="search-filter-btn" data-cat="education">📚 التعليم</button>
+        <button class="search-filter-btn" data-cat="cost-of-living">💰 المعيشة</button>
+        <button class="search-filter-btn" data-cat="tourism">🗺️ السياحة</button>
+        <button class="search-filter-btn" data-cat="business">💹 الأعمال</button>
       </div>
     </div>
   </div>
-</header>
-<nav class="main-nav" role="navigation">
-  <div class="container">
-    <ul class="nav-menu">
-      <li class="nav-item"><a href="/">الرئيسية</a></li>
-      <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
-      <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
-      <li class="nav-item"><a href="/about">عن الموقع</a></li>
-    </ul>
-  </div>
-</nav>
-
-<div class="container search-results-page">
-  <h1 style="font-size:22px;font-weight:800;margin-bottom:20px">
-    <i class="fas fa-search" style="color:var(--primary)"></i>
-    نتائج البحث عن: <span id="search-query" style="color:var(--primary)"></span>
-  </h1>
-  <input type="text" class="search-input-big" id="search-box" placeholder="ابحث في الأخبار...">
-  <div id="results-count" style="font-size:13px;color:var(--text-light);margin-bottom:20px"></div>
-  <div class="article-grid" id="search-results"></div>
 </div>
 
-<footer class="main-footer">
-  <div class="footer-bottom">
-    <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-      <span>© <span id="year"></span> إسبانيا اليوم | España Hoy</span>
-      <div class="footer-bottom-links"><a href="/privacy">سياسة الخصوصية</a><a href="/contact">اتصل بنا</a></div>
-    </div>
+<div class="container">
+  <div class="results-meta" id="results-meta" style="display:none">
+    <div class="results-count" id="results-count"></div>
   </div>
-</footer>
+  <div id="search-results"></div>
+</div>
+
+<footer class="main-footer"><div class="footer-bottom">
+  <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <span>© <span id="year"></span> إسبانيا اليوم | España Hoy</span>
+    <div class="footer-bottom-links"><a href="/privacy">سياسة الخصوصية</a><a href="/contact">اتصل بنا</a></div>
+  </div>
+</div></footer>
+<button class="back-top" id="back-top"><i class="fas fa-chevron-up"></i></button>
+<div class="toast" id="toast"></div>
 
 <script>
 const CAT_LABELS={immigration:'الهجرة',residency:'الإقامة',jobs:'الوظائف',housing:'السكن',education:'التعليم','cost-of-living':'تكلفة المعيشة','government-benefits':'مزايا حكومية','crime-safety':'الأمن والسلامة','local-news':'أخبار محلية',tourism:'السياحة',business:'الأعمال'};
 const CAT_ICONS={immigration:'✈️',residency:'📋',jobs:'💼',housing:'🏠',education:'📚','cost-of-living':'💰','government-benefits':'🏛️','crime-safety':'🛡️','local-news':'📰',tourism:'🗺️',business:'💹'};
+const SUGGESTIONS=['تأشيرة','إقامة','وظائف مدريد','إيجار','تعليم الأطفال','ضمان اجتماعي','هجرة قانونية','برشلونة','تكلفة المعيشة','جواز السفر'];
 
+let currentCat='';
+let currentQ='';
+
+// Init
 document.getElementById('year').textContent=new Date().getFullYear();
 const d=new Date(),months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 document.getElementById('current-date').textContent=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+// Dark mode
 const saved=localStorage.getItem('theme')||'light';
 document.documentElement.setAttribute('data-theme',saved);
+document.getElementById('dark-toggle').innerHTML=saved==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
 document.getElementById('dark-toggle').addEventListener('click',()=>{
   const c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);
   document.getElementById('dark-toggle').innerHTML=n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
 });
 
-const q=new URLSearchParams(window.location.search).get('q')||'';
-document.getElementById('search-query').textContent=q;
-document.getElementById('search-box').value=q;
-document.getElementById('page-title').textContent=`بحث: ${q} | إسبانيا اليوم`;
+// Mobile nav
+const h=document.getElementById('nav-hamburger'),o=document.getElementById('mobile-overlay'),p=document.getElementById('mobile-panel'),cl=document.getElementById('mobile-close');
+if(h){const open=()=>{o.classList.add('open');p.classList.add('open');document.body.style.overflow='hidden';};const close=()=>{o.classList.remove('open');p.classList.remove('open');document.body.style.overflow='';};h.addEventListener('click',open);o.addEventListener('click',close);cl.addEventListener('click',close);}
 
-document.getElementById('search-box').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){const v=e.target.value.trim();if(v)window.location.href=`/search?q=${encodeURIComponent(v)}`;}
+// Back top
+const bt=document.getElementById('back-top');
+window.addEventListener('scroll',()=>bt.classList.toggle('visible',window.scrollY>400));
+bt.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+// Category filters
+document.getElementById('cat-filters').addEventListener('click',e=>{
+  const btn=e.target.closest('.search-filter-btn');
+  if(!btn)return;
+  document.querySelectorAll('.search-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat=btn.dataset.cat;
+  doSearch();
 });
 
-async function doSearch(){
-  if(!q){document.getElementById('results-count').textContent='أدخل كلمة للبحث';return;}
-  try{
-    const res=await fetch(`/api/articles?search=${encodeURIComponent(q)}&limit=30`);
-    const data=await res.json();
-    const articles=data.articles||data||[];
-    document.getElementById('results-count').textContent=`${articles.length} نتيجة`;
-    const grid=document.getElementById('search-results');
-    if(!articles.length){
-      grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-light)"><div style="font-size:48px;margin-bottom:16px">🔍</div><p>لم يتم العثور على نتائج لـ "${q}"</p><a href="/" style="display:inline-block;margin-top:16px;background:var(--primary);color:white;padding:10px 24px;border-radius:40px;font-weight:700;text-decoration:none">العودة للرئيسية</a></div>`;
-      return;
-    }
-    grid.innerHTML=articles.map(a=>{
-      const cat=a.category||'local-news';
-      const icon=CAT_ICONS[cat]||'📰';
-      const imgHtml=a.image?`<img class="article-card-thumb" src="${a.image}" alt="" loading="lazy">`:`<div class="article-card-thumb-placeholder">${icon}</div>`;
-      return`<a href="/article?id=${a.slug||a.id}" class="article-card">${imgHtml}<div class="article-card-body"><span class="article-cat-badge">${CAT_LABELS[cat]||'أخبار'}</span><h2 class="article-card-title">${esc(a.title)}</h2><div class="article-card-meta"><span>${fmt(a.createdAt)}</span></div></div></a>`;
-    }).join('');
-  }catch(e){document.getElementById('results-count').textContent='حدث خطأ في البحث';}
+// Search input
+const input=document.getElementById('search-input');
+input.addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+
+// Get query from URL
+const urlQ=new URLSearchParams(window.location.search).get('q')||'';
+currentQ=urlQ;
+if(urlQ){
+  input.value=urlQ;
+  document.getElementById('page-title').textContent=`بحث: ${urlQ} | إسبانيا اليوم`;
+  doSearch();
+} else {
+  showDefault();
 }
 
-function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function fmt(ds){if(!ds)return'';try{const d=new Date(ds),months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];return`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;}catch{return'';}}
+function doSearch(){
+  currentQ=input.value.trim();
+  if(!currentQ && !currentCat){showDefault();return;}
+  // Update URL
+  const newUrl=currentQ?`/search?q=${encodeURIComponent(currentQ)}`:'/search';
+  window.history.replaceState({},'',newUrl);
+  document.getElementById('page-title').textContent=currentQ?`بحث: ${currentQ} | إسبانيا اليوم`:'البحث | إسبانيا اليوم';
+  fetchResults();
+}
 
-doSearch();
+async function fetchResults(){
+  const grid=document.getElementById('search-results');
+  const meta=document.getElementById('results-meta');
+  grid.innerHTML=`<div class="search-loading"><i class="fas fa-spinner"></i><p>جاري البحث...</p></div>`;
+  meta.style.display='none';
+  try{
+    let url='/api/articles?limit=50';
+    if(currentQ) url+=`&search=${encodeURIComponent(currentQ)}`;
+    if(currentCat) url+=`&category=${encodeURIComponent(currentCat)}`;
+    const res=await fetch(url);
+    const data=await res.json();
+    let articles=data.articles||data||[];
+    // Client-side filter if server doesn't filter by category+search together
+    if(currentCat && currentQ){
+      articles=articles.filter(a=>(a.category||'')===(currentCat));
+    }
+    renderResults(articles);
+  }catch(e){
+    grid.innerHTML=`<div class="no-results"><div class="no-results-icon">⚠️</div><h2>حدث خطأ في البحث</h2><p>يرجى المحاولة مرة أخرى</p></div>`;
+  }
+}
+
+function renderResults(articles){
+  const grid=document.getElementById('search-results');
+  const meta=document.getElementById('results-meta');
+  const count=document.getElementById('results-count');
+
+  if(!articles.length){
+    meta.style.display='none';
+    grid.innerHTML=`
+      <div class="no-results">
+        <div class="no-results-icon">🔍</div>
+        <h2>لا توجد نتائج لـ "${esc(currentQ)}"</h2>
+        <p>جرّب كلمات مختلفة أو تصفّح التصنيفات أدناه</p>
+        <div class="suggestions">${SUGGESTIONS.map(s=>`<span class="suggestion-tag" onclick="searchSuggestion('${s}')">${s}</span>`).join('')}</div>
+      </div>`;
+    return;
+  }
+
+  meta.style.display='flex';
+  count.innerHTML=currentQ
+    ? `تم العثور على <strong>${articles.length}</strong> نتيجة لـ "<strong>${esc(currentQ)}</strong>"`
+    : `<strong>${articles.length}</strong> مقال في هذا التصنيف`;
+
+  grid.innerHTML=`<div class="article-grid">${articles.map(a=>{
+    const cat=a.category||'local-news';
+    const slug=a.arabic_slug||a.slug||a.id;
+    const img=a.image||a.image_url||a.imageUrl||'';
+    const title=a.title||a.arabic_title||'';
+    const summary=a.summary||a.arabic_summary||'';
+    const imgHtml=img
+      ?`<img class="article-card-thumb" src="${img}" alt="${esc(title)}" loading="lazy" onerror="this.style.display='none'">`
+      :`<div class="article-card-thumb-placeholder">${CAT_ICONS[cat]||'📰'}</div>`;
+    // Highlight search term
+    const hlTitle=currentQ?highlight(title,currentQ):esc(title);
+    const hlSummary=currentQ?highlight(summary.substring(0,100),currentQ):esc(summary.substring(0,100));
+    return`<a href="/article/${slug}" class="article-card">
+      ${imgHtml}
+      <div class="article-card-body">
+        <span class="article-cat-badge">${CAT_LABELS[cat]||'أخبار'}</span>
+        <h2 class="article-card-title">${hlTitle}</h2>
+        ${hlSummary?`<p class="article-card-summary">${hlSummary}...</p>`:''}
+        <div class="article-card-meta">
+          <span>${fmt(a.createdAt||a.publishedAt)}</span>
+          <span><i class="far fa-eye"></i> ${a.views||0}</span>
+        </div>
+      </div>
+    </a>`;
+  }).join('')}</div>`;
+}
+
+function showDefault(){
+  const grid=document.getElementById('search-results');
+  document.getElementById('results-meta').style.display='none';
+  grid.innerHTML=`
+    <div style="text-align:center;padding:20px 0 40px">
+      <p style="color:var(--text-light);margin-bottom:20px">ابحث عن أي موضوع يخص الحياة في إسبانيا</p>
+      <div class="suggestions">${SUGGESTIONS.map(s=>`<span class="suggestion-tag" onclick="searchSuggestion('${s}')">${s}</span>`).join('')}</div>
+    </div>`;
+}
+
+function searchSuggestion(s){
+  input.value=s;
+  currentQ=s;
+  doSearch();
+}
+
+function highlight(text,q){
+  if(!text||!q)return esc(text);
+  const safe=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return esc(text).replace(new RegExp(safe,'gi'),m=>`<mark class="highlight">${m}</mark>`);
+}
+function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(ds){if(!ds)return'';try{const d=new Date(ds);return`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;}catch{return'';}}
 </script>
 </body>
 </html>

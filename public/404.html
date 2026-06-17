@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الصفحة غير موجودة | إسبانيا اليوم</title>
+  <meta name="robots" content="noindex, follow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .page-404{min-height:70vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+    .err-code{font-size:120px;font-weight:900;color:var(--primary);line-height:1;margin-bottom:0;opacity:.15;position:absolute}
+    .err-wrap{position:relative;padding:20px}
+    .err-icon{font-size:72px;margin-bottom:20px;display:block}
+    .err-title{font-size:32px;font-weight:800;margin-bottom:12px;color:var(--text)}
+    .err-desc{font-size:16px;color:var(--text-light);margin-bottom:32px;line-height:1.7;max-width:480px}
+    .err-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .err-btn-primary{background:var(--primary);color:white;padding:13px 28px;border-radius:40px;font-weight:700;text-decoration:none;font-size:15px;transition:.2s}
+    .err-btn-secondary{background:var(--bg-card);color:var(--text);padding:13px 28px;border-radius:40px;font-weight:700;text-decoration:none;font-size:15px;border:1px solid var(--border);transition:.2s}
+    .err-btn-primary:hover{opacity:.9}
+    .err-btn-secondary:hover{background:var(--border)}
+    .err-search{margin-top:32px}
+    .err-search-box{display:flex;gap:10px;max-width:400px;margin:0 auto}
+    .err-search-box input{flex:1;padding:12px 18px;border-radius:40px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-family:inherit;font-size:14px}
+    .err-search-box button{background:var(--primary);color:white;border:none;padding:12px 20px;border-radius:40px;cursor:pointer;font-size:14px}
+    .err-cats{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:28px}
+    .err-cat-link{background:var(--bg-card);border:1px solid var(--border);padding:8px 16px;border-radius:30px;font-size:13px;text-decoration:none;color:var(--text);transition:.2s}
+    .err-cat-link:hover{background:var(--primary);color:white;border-color:var(--primary)}
+  </style>
+</head>
+<body>
+<div class="top-bar"><div class="container">
+  <div class="date-time"><span id="current-date"></span></div>
+  <div class="top-social">
+    <a href="https://www.facebook.com/profile.php?id=61590454725875" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+  </div>
+</div></div>
+<header class="main-header"><div class="container"><div class="header-inner">
+  <a href="/" class="logo-wrap" style="text-decoration:none">
+    <div class="logo-icon">إ</div>
+    <div class="logo-text"><div class="ar">إسبانيا اليوم</div><div class="es">España Hoy</div></div>
+  </a>
+  <div class="header-actions">
+    <button class="dark-toggle" id="dark-toggle"><i class="fas fa-moon"></i></button>
+  </div>
+</div></div></header>
+<nav class="main-nav"><div class="container"><ul class="nav-menu">
+  <li class="nav-item"><a href="/">الرئيسية</a></li>
+  <li class="nav-item"><a href="/category/immigration">الهجرة</a></li>
+  <li class="nav-item"><a href="/category/residency">الإقامة</a></li>
+  <li class="nav-item"><a href="/category/jobs">الوظائف</a></li>
+  <li class="nav-item"><a href="/category/housing">السكن</a></li>
+  <li class="nav-item"><a href="/about">عن الموقع</a></li>
+</ul></div></nav>
+
+<div class="page-404">
+  <div class="err-wrap">
+    <div class="err-code">404</div>
+    <span class="err-icon">🗺️</span>
+    <h1 class="err-title">عذراً، الصفحة غير موجودة</h1>
+    <p class="err-desc">ربما تم نقل هذه الصفحة أو حذفها، أو ربما كتبت الرابط بشكل خاطئ. لا تقلق، يمكنك العودة للرئيسية أو البحث عما تريد.</p>
+    <div class="err-btns">
+      <a href="/" class="err-btn-primary"><i class="fas fa-home"></i> العودة للرئيسية</a>
+      <a href="javascript:history.back()" class="err-btn-secondary"><i class="fas fa-arrow-right"></i> الصفحة السابقة</a>
+    </div>
+    <div class="err-search">
+      <div class="err-search-box">
+        <input type="text" id="err-search" placeholder="ابحث في الأخبار...">
+        <button onclick="doSearch()"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+    <div class="err-cats">
+      <a href="/category/immigration" class="err-cat-link">✈️ الهجرة</a>
+      <a href="/category/residency" class="err-cat-link">📋 الإقامة</a>
+      <a href="/category/jobs" class="err-cat-link">💼 الوظائف</a>
+      <a href="/category/housing" class="err-cat-link">🏠 السكن</a>
+      <a href="/category/education" class="err-cat-link">📚 التعليم</a>
+      <a href="/category/cost-of-living" class="err-cat-link">💰 تكلفة المعيشة</a>
+      <a href="/category/tourism" class="err-cat-link">🗺️ السياحة</a>
+      <a href="/category/business" class="err-cat-link">💹 الأعمال</a>
+    </div>
+  </div>
+</div>
+
+<footer class="main-footer"><div class="footer-bottom">
+  <div class="container" style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <span>© <span id="year"></span> إسبانيا اليوم | España Hoy</span>
+    <div class="footer-bottom-links"><a href="/privacy">سياسة الخصوصية</a><a href="/contact">اتصل بنا</a></div>
+  </div>
+</div></footer>
+<button class="back-top" id="back-top"><i class="fas fa-chevron-up"></i></button>
+<script>
+  document.getElementById('year').textContent=new Date().getFullYear();
+  const d=new Date(),months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  document.getElementById('current-date').textContent=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const saved=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',saved);
+  document.getElementById('dark-toggle').innerHTML=saved==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+  document.getElementById('dark-toggle').addEventListener('click',()=>{
+    const c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);
+    document.getElementById('dark-toggle').innerHTML=n==='dark'?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
+  });
+  const bt=document.getElementById('back-top');
+  window.addEventListener('scroll',()=>bt.classList.toggle('visible',window.scrollY>400));
+  bt.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  function doSearch(){const q=document.getElementById('err-search').value.trim();if(q)window.location.href=`/search?q=${encodeURIComponent(q)}`;}
+  document.getElementById('err-search').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+  // Countdown redirect
+  let count=30;
+  const interval=setInterval(()=>{count--;if(count<=0){clearInterval(interval);window.location.href='/';}},1000);
+</script>
+</body>
+</html>
