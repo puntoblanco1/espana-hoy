@@ -15,6 +15,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preload" href="/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/main.css"></noscript>
   <link rel="stylesheet" href="/css/main.css">
   <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script> -->
 </head>
@@ -138,8 +140,11 @@
         </div>
       </div>
 
+      <!-- AD SIDEBAR -->
       <div class="ad-label">إعلان</div>
-      <div class="ad-zone" style="min-height:250px;margin-bottom:24px"></div>
+      <div class="ad-zone" style="min-height:250px;margin-bottom:24px" id="ad-sidebar">
+        <!-- adsense unit هنا -->
+      </div>
 
       <div class="widget">
         <div class="widget-header"><i class="fas fa-envelope"></i> النشرة الإخبارية</div>
@@ -155,6 +160,23 @@
     </aside>
   </div>
 </div>
+
+
+<!-- مقالات ذات صلة — كارد Grid -->
+<section class="related-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">مقالات قد تهمك</h2>
+      <a href="/" class="see-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
+    </div>
+    <div class="related-grid" id="related-articles-grid">
+      <!-- filled by JS -->
+      <div class="related-card"><div class="related-card-media skeleton" style="height:160px"></div><div class="related-card-body"><div class="skeleton" style="width:60%;height:12px;margin-bottom:8px"></div><div class="skeleton" style="width:100%;height:16px;margin-bottom:6px"></div><div class="skeleton" style="width:70%;height:14px"></div></div></div>
+      <div class="related-card"><div class="related-card-media skeleton" style="height:160px"></div><div class="related-card-body"><div class="skeleton" style="width:60%;height:12px;margin-bottom:8px"></div><div class="skeleton" style="width:100%;height:16px;margin-bottom:6px"></div><div class="skeleton" style="width:70%;height:14px"></div></div></div>
+      <div class="related-card"><div class="related-card-media skeleton" style="height:160px"></div><div class="related-card-body"><div class="skeleton" style="width:60%;height:12px;margin-bottom:8px"></div><div class="skeleton" style="width:100%;height:16px;margin-bottom:6px"></div><div class="skeleton" style="width:70%;height:14px"></div></div></div>
+    </div>
+  </div>
+</section>
 
 <!-- FOOTER -->
 <footer class="main-footer" role="contentinfo">
