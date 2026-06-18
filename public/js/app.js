@@ -1,6 +1,5 @@
 /* ===================================
-   إسبانيا اليوم — app.js
-   Homepage JavaScript
+   إسبانيا اليوم — app.js v2
    =================================== */
 
 const API_BASE = '';
@@ -20,6 +19,36 @@ let allArticles = [];
 let displayedCount = 0;
 let currentCat = 'all';
 const PAGE_SIZE = 9;
+
+// Lazy image observer
+let imgObserver;
+if ('IntersectionObserver' in window) {
+  imgObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        if (img.dataset.src) {
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+          imgObserver.unobserve(img);
+        }
+      }
+    });
+  }, { rootMargin: '200px' });
+}
+
+function lazyImg(src, alt, cls, eager) {
+  if (!src) return '';
+  if (eager || !imgObserver) {
+    return `<img class="${cls}" src="${src}" alt="${escHtml(alt)}" loading="eager" onerror="this.style.display='none'">`;
+  }
+  return `<img class="${cls}" data-src="${src}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="${escHtml(alt)}" loading="lazy" onerror="this.style.display='none'">`;
+}
+
+function observeImages() {
+  if (!imgObserver) return;
+  document.querySelectorAll('img[data-src]').forEach(img => imgObserver.observe(img));
+}
 
 function imgUrl(a) {
   return a.image || a.image_url || a.imageUrl || '';
@@ -94,7 +123,7 @@ function doSearch() {
 
 async function fetchArticles() {
   try {
-    const res = await fetch('/api/articles?limit=60&status=published');
+    const res = await fetch('/api/articles?limit=100&status=published');
     const data = await res.json();
     allArticles = (data.articles || data || []).filter(a => a.status === 'published' || a.title);
     if (allArticles.length === 0) { showEmptyState(); return; }
@@ -120,7 +149,7 @@ function renderHero() {
   const slug = hero.arabic_slug || hero.slug || hero.id;
   const img = imgUrl(hero);
   const imageHtml = img
-    ? `<img class="hero-img" src="${img}" alt="${escHtml(hero.title || hero.arabic_title)}" loading="eager" onerror="this.style.display='none'">`
+    ? `<img class="hero-img" src="${img}" alt="${escHtml(hero.title || hero.arabic_title)}" loading="eager" fetchpriority="high" onerror="this.style.display='none'">`
     : `<div class="hero-placeholder"></div>`;
 
   const title = hero.title || hero.arabic_title || '';
@@ -131,7 +160,8 @@ function renderHero() {
       <h1 class="hero-title">${escHtml(title)}</h1>
       <div class="hero-meta">
         <span><i class="far fa-clock"></i> ${formatDate(hero.createdAt || hero.publishedAt)}</span>
-        <span><i class="far fa-eye"></i> ${hero.views || 0} مشاهدة</span>
+        <span><i class="far fa-eye"></i> ${(hero.views || 0).toLocaleString('ar')} مشاهدة</span>
+        <span><i class="far fa-clock"></i> ${readTime(hero)} دقائق</span>
       </div>
     </div>`;
   heroCard.onclick = () => window.location.href = `/article/${slug}`;
@@ -142,7 +172,7 @@ function renderHero() {
     const c = a.category || 'local-news';
     const aImg = imgUrl(a);
     const imgHtml = aImg
-      ? `<img class="side-card-img" src="${aImg}" alt="${escHtml(a.title||a.arabic_title)}" loading="lazy" onerror="this.style.display='none'">`
+      ? lazyImg(aImg, a.title||a.arabic_title, 'side-card-img', false)
       : `<div class="side-card-img-placeholder">${CAT_ICONS[c] || '📰'}</div>`;
     return `
       <a href="/article/${a.arabic_slug||a.slug||a.id}" class="side-card">
@@ -150,10 +180,14 @@ function renderHero() {
         <div class="side-card-body">
           <div class="side-card-cat">${CAT_LABELS[c] || 'أخبار'}</div>
           <div class="side-card-title">${escHtml(a.title||a.arabic_title)}</div>
-          <div class="side-card-date">${formatDate(a.createdAt || a.publishedAt)}</div>
+          <div class="side-card-date">
+            <span>${formatDate(a.createdAt || a.publishedAt)}</span>
+            <span><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')}</span>
+          </div>
         </div>
       </a>`;
   }).join('');
+  observeImages();
 }
 
 function renderArticleGrid(reset = true) {
@@ -177,7 +211,7 @@ function renderArticleGrid(reset = true) {
     const catLabel = CAT_LABELS[cat] || 'أخبار';
     const aImg = imgUrl(a);
     const imgHtml = aImg
-      ? `<img class="article-card-thumb" src="${aImg}" alt="${escHtml(a.title||a.arabic_title)}" loading="lazy" onerror="this.style.display='none'">`
+      ? lazyImg(aImg, a.title||a.arabic_title, 'article-card-thumb', false)
       : `<div class="article-card-thumb-placeholder">${CAT_ICONS[cat] || '📰'}</div>`;
     const card = document.createElement('a');
     card.className = 'article-card';
@@ -190,11 +224,13 @@ function renderArticleGrid(reset = true) {
         <p class="article-card-summary">${escHtml((a.summary||a.arabic_summary||'').substring(0,100))}...</p>
         <div class="article-card-meta">
           <span>${formatDate(a.createdAt || a.publishedAt)}</span>
-          <span class="article-read-time"><i class="far fa-clock"></i> ${readTime(a)} دقائق</span>
+          <span class="article-read-time"><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')} · <i class="far fa-clock"></i> ${readTime(a)} د</span>
         </div>
       </div>`;
     grid.appendChild(card);
   });
+
+  observeImages();
 
   const btn = document.getElementById('load-more');
   btn.style.display = filtered.slice(displayedCount).length > 0 ? 'inline-flex' : 'none';
@@ -217,7 +253,10 @@ function renderMostRead() {
   list.innerHTML = top5.map((a, i) => `
     <a href="/article/${a.arabic_slug||a.slug||a.id}" class="most-read-item">
       <div class="most-read-num">${i + 1}</div>
-      <div class="most-read-title">${escHtml(a.title||a.arabic_title)}</div>
+      <div>
+        <div class="most-read-title">${escHtml(a.title||a.arabic_title)}</div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:3px"><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')} مشاهدة</div>
+      </div>
     </a>`).join('');
 }
 
@@ -229,7 +268,6 @@ function renderTicker() {
   track.innerHTML = items.map(a =>
     `<span class="ticker-item" onclick="window.location.href='/article/${a.arabic_slug||a.slug||a.id}'" style="cursor:pointer">${escHtml(a.title||a.arabic_title)}</span>`
   ).join('');
-  // Reset animation
   track.style.animation = 'none';
   track.offsetHeight;
   track.style.animation = '';
