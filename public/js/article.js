@@ -1,5 +1,5 @@
 /* ===================================
-   إسبانيا اليوم — article.js
+   إسبانيا اليوم — article.js v2
    =================================== */
 
 const CAT_LABELS = {
@@ -8,6 +8,33 @@ const CAT_LABELS = {
   'government-benefits':'مزايا حكومية', 'crime-safety':'الأمن والسلامة',
   'local-news':'أخبار محلية', tourism:'السياحة', business:'الأعمال'
 };
+const CAT_ICONS = {
+  immigration:'✈️', residency:'📋', jobs:'💼', housing:'🏠',
+  education:'📚', 'cost-of-living':'💰', 'government-benefits':'🏛️',
+  'crime-safety':'🛡️', 'local-news':'📰', tourism:'🗺️', business:'💹'
+};
+
+// Lazy image observer
+let imgObserver;
+if ('IntersectionObserver' in window) {
+  imgObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        if (img.dataset.src) {
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+          imgObserver.unobserve(img);
+        }
+      }
+    });
+  }, { rootMargin: '200px' });
+}
+
+function observeImages() {
+  if (!imgObserver) return;
+  document.querySelectorAll('img[data-src]').forEach(img => imgObserver.observe(img));
+}
 
 function imgUrl(a) {
   return a.image || a.image_url || a.imageUrl || '';
@@ -69,7 +96,6 @@ function doSearch() {
 }
 
 async function loadArticle() {
-  // Support both /article/slug and /article?id=slug
   const pathParts = window.location.pathname.split('/');
   const pathSlug = pathParts[pathParts.length - 1];
   const params = new URLSearchParams(window.location.search);
@@ -77,7 +103,6 @@ async function loadArticle() {
 
   if (!id || id === 'article') { show404(); return; }
 
-  // Reading progress bar
   initReadingProgress();
 
   try {
@@ -106,13 +131,14 @@ function initReadingProgress() {
 function renderArticle(a) {
   const cat = a.category || 'local-news';
   const catLabel = CAT_LABELS[cat] || 'أخبار';
+  const catIcon = CAT_ICONS[cat] || '📰';
   const url = window.location.href;
   const title = a.title || a.arabic_title || '';
   const summary = a.summary || a.arabic_summary || a.excerpt || '';
   const content = a.contentAr || a.arabic_content || a.content || '';
   const faq = a.faq || [];
   const slug = a.arabic_slug || a.slug || a.id;
-  const canonicalUrl = `https://espana-hoy-production.up.railway.app/article/${slug}`;
+  const canonicalUrl = `${window.location.origin}/article/${slug}`;
 
   // Set meta
   document.getElementById('page-title').textContent = `${title} | إسبانيا اليوم`;
@@ -136,8 +162,8 @@ function renderArticle(a) {
     "dateModified": a.updatedAt || a.createdAt,
     "author": {"@type":"Organization","name":"إسبانيا اليوم"},
     "publisher": {"@type":"Organization","name":"إسبانيا اليوم",
-      "logo":{"@type":"ImageObject","url":"https://espana-hoy-production.up.railway.app/logo.png"},
-      "url":"https://espana-hoy-production.up.railway.app"},
+      "logo":{"@type":"ImageObject","url":`${window.location.origin}/logo.png`},
+      "url": window.location.origin},
     "mainEntityOfPage": canonicalUrl,
     "image": aImg || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800"
   };
@@ -156,9 +182,9 @@ function renderArticle(a) {
   // Tags
   const tags = a.tags || [];
   const tagsHtml = tags.length
-    ? `<div class="tags-wrap">${tags.map(t=>`<span class="tag">#${escHtml(t)}</span>`).join('')}</div>` : '';
+    ? `<div class="tags-wrap">${tags.map(t=>`<a href="/search?q=${encodeURIComponent(t)}" class="tag">#${escHtml(t)}</a>`).join('')}</div>` : '';
 
-  // FAQ — use innerHTML so HTML renders, but sanitize text-only fields
+  // FAQ
   const faqHtml = faq.length ? `
     <div class="faq-section">
       <h2>أسئلة شائعة</h2>
@@ -173,8 +199,10 @@ function renderArticle(a) {
     </div>` : '';
 
   const imgHtml = aImg
-    ? `<img class="article-hero-img" src="${aImg}" alt="${escHtml(title)}" loading="eager" onerror="this.style.display='none'">`
+    ? `<img class="article-hero-img" src="${aImg}" alt="${escHtml(title)}" loading="eager" fetchpriority="high" onerror="this.style.display='none'">`
     : '';
+
+  const viewCount = (a.views || 0).toLocaleString('ar');
 
   document.getElementById('article-main').innerHTML = `
     <nav class="article-breadcrumb" aria-label="مسار التنقل">
@@ -183,38 +211,50 @@ function renderArticle(a) {
       <span>${escHtml(title.substring(0,50))}${title.length>50?'...':''}</span>
     </nav>
 
-    <span class="article-cat-badge" style="font-size:12px;margin-bottom:12px;display:inline-block">${catLabel}</span>
+    <span class="article-cat-badge" style="font-size:12px;margin-bottom:12px;display:inline-block">${catIcon} ${catLabel}</span>
     <h1 class="article-headline">${escHtml(title)}</h1>
     ${summary ? `<p class="article-summary">${escHtml(summary)}</p>` : ''}
 
     <div class="article-info-bar">
       <span class="info-item"><i class="far fa-calendar"></i> ${formatDate(a.createdAt||a.publishedAt)}</span>
       <span class="info-item"><i class="far fa-clock"></i> ${readTime(a)} دقائق قراءة</span>
-      <span class="info-item"><i class="far fa-eye"></i> ${a.views||0} مشاهدة</span>
+      <span class="info-item" id="view-counter"><i class="far fa-eye"></i> ${viewCount} مشاهدة</span>
       <span class="info-item"><i class="fas fa-tag"></i> ${catLabel}</span>
     </div>
 
     ${imgHtml}
 
+    <!-- AD ZONE 1 — بعد الصورة مباشرة -->
     <div class="ad-label">إعلان</div>
-    <div class="ad-zone ad-banner" style="margin-bottom:24px"></div>
+    <div class="ad-zone ad-banner" id="ad-article-top">
+      <!-- adsense unit هنا -->
+    </div>
 
     <div class="article-body">${formatContent(content)}</div>
 
     ${tagsHtml}
 
     <div class="share-bar">
-      <span>شارك:</span>
+      <span>شارك المقال:</span>
       <button class="share-btn share-fb" onclick="share('facebook')"><i class="fab fa-facebook-f"></i> فيسبوك</button>
       <button class="share-btn share-wa" onclick="share('whatsapp')"><i class="fab fa-whatsapp"></i> واتساب</button>
       <button class="share-btn share-tw" onclick="share('twitter')"><i class="fab fa-x-twitter"></i> X</button>
-      <button class="share-btn share-cp" onclick="copyLink()"><i class="far fa-copy"></i> نسخ الرابط</button>
+      <button class="share-btn share-cp" onclick="copyLink()"><i class="far fa-copy"></i> نسخ</button>
+    </div>
+
+    <!-- AD ZONE 2 — بعد المشاركة -->
+    <div class="ad-label" style="margin-top:24px">إعلان</div>
+    <div class="ad-zone ad-banner" id="ad-article-mid">
+      <!-- adsense unit هنا -->
     </div>
 
     ${faqHtml}
 
+    <!-- AD ZONE 3 — نهاية المقال -->
     <div class="ad-label" style="margin-top:24px">إعلان</div>
-    <div class="ad-zone ad-banner"></div>
+    <div class="ad-zone ad-banner" id="ad-article-bottom">
+      <!-- adsense unit هنا -->
+    </div>
   `;
 }
 
@@ -223,7 +263,6 @@ function formatContent(html) {
   if (!html.includes('<')) {
     return html.split('\n\n').filter(p=>p.trim()).map(p=>`<p>${escHtml(p.trim())}</p>`).join('');
   }
-  // It's HTML — inject directly (it comes from our own DB, not user input)
   return html;
 }
 
@@ -248,22 +287,70 @@ function copyLink() {
 
 async function fetchRelated(cat, currentId) {
   try {
-    const res = await fetch(`/api/articles?category=${cat}&limit=6`);
+    const res = await fetch(`/api/articles?limit=6`);
     const data = await res.json();
-    const articles = (data.articles || data || [])
-      .filter(a => (a.arabic_slug||a.slug||a.id) !== currentId).slice(0,5);
-    const list = document.getElementById('related-list');
-    if (!articles.length) { list.closest('.widget').style.display='none'; return; }
-    list.innerHTML = articles.map((a,i) => `
-      <a href="/article/${a.arabic_slug||a.slug||a.id}" class="most-read-item">
-        <div class="most-read-num">${i+1}</div>
-        <div class="most-read-title">${escHtml(a.title||a.arabic_title)}</div>
-      </a>`).join('');
+    const all = (data.articles || data || []);
+    // First try same category, then any
+    let related = all.filter(a => a.category===cat && (a.arabic_slug||a.slug||a.id) !== currentId).slice(0,3);
+    if (related.length < 3) {
+      const others = all.filter(a => a.category!==cat && (a.arabic_slug||a.slug||a.id) !== currentId).slice(0, 3-related.length);
+      related = [...related, ...others];
+    }
+
+    const sidebar = document.getElementById('related-list');
+    const relatedGrid = document.getElementById('related-articles-grid');
+
+    // Sidebar list
+    if (sidebar) {
+      if (!related.length) { sidebar.closest('.widget').style.display='none'; }
+      else {
+        sidebar.innerHTML = related.map((a,i) => `
+          <a href="/article/${a.arabic_slug||a.slug||a.id}" class="most-read-item">
+            <div class="most-read-num">${i+1}</div>
+            <div>
+              <div class="most-read-title">${escHtml(a.title||a.arabic_title)}</div>
+              <div style="font-size:11px;color:var(--text-light);margin-top:3px"><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')}</div>
+            </div>
+          </a>`).join('');
+      }
+    }
+
+    // Bottom related cards grid
+    if (relatedGrid && related.length) {
+      const CAT_LABELS_LOCAL = {immigration:'الهجرة',residency:'الإقامة',jobs:'الوظائف',housing:'السكن',education:'التعليم','cost-of-living':'تكلفة المعيشة','government-benefits':'مزايا حكومية','crime-safety':'الأمن والسلامة','local-news':'أخبار محلية',tourism:'السياحة',business:'الأعمال'};
+      relatedGrid.innerHTML = related.slice(0,3).map(a => {
+        const aImg = a.image || a.image_url || a.imageUrl || '';
+        const aC = a.category || 'local-news';
+        const imgHtml = aImg
+          ? `<img data-src="${aImg}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="${escHtml(a.title||a.arabic_title)}" class="related-card-img" loading="lazy" onerror="this.style.display='none'">`
+          : `<div class="related-card-img-placeholder">${CAT_ICONS[aC]||'📰'}</div>`;
+        return `
+          <a href="/article/${a.arabic_slug||a.slug||a.id}" class="related-card">
+            <div class="related-card-media">${imgHtml}</div>
+            <div class="related-card-body">
+              <span class="article-cat-badge" style="font-size:11px">${CAT_LABELS_LOCAL[aC]||'أخبار'}</span>
+              <div class="related-card-title">${escHtml(a.title||a.arabic_title)}</div>
+              <div class="related-card-meta"><i class="far fa-clock"></i> ${readTime(a)} دقائق · <i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')}</div>
+            </div>
+          </a>`;
+      }).join('');
+      if (imgObserver) {
+        relatedGrid.querySelectorAll('img[data-src]').forEach(img => imgObserver.observe(img));
+      }
+    }
   } catch {}
 }
 
 async function trackView(id) {
-  try { await fetch(`/api/articles/${id}/view`, {method:'POST'}); } catch {}
+  try {
+    await fetch(`/api/articles/${id}/view`, {method:'POST'});
+    // Update the visible view counter +1
+    const counter = document.getElementById('view-counter');
+    if (counter) {
+      const current = parseInt(counter.textContent.replace(/[^0-9]/g,'')) || 0;
+      counter.innerHTML = `<i class="far fa-eye"></i> ${(current+1).toLocaleString('ar')} مشاهدة`;
+    }
+  } catch {}
 }
 
 function show404() {
