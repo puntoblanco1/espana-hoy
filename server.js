@@ -273,7 +273,7 @@ app.get('/article/:slug', (req, res) => {
 app.get('/sitemap.xml', (req, res) => {
   const db = getDB();
   const articles = (db.articles||[]).filter(a=>a.status==='published'||!a.status);
-  const baseUrl = process.env.SITE_URL || 'https://espana-hoy-production.up.railway.app';
+  const baseUrl = process.env.SITE_URL || 'https://www.espaniaalyoum.com';
 
   const staticUrls = ['/', '/about', '/contact', '/privacy',
     '/category/immigration','/category/residency','/category/jobs',
@@ -304,7 +304,7 @@ ${articleUrls}
 });
 
 app.get('/robots.txt', (req, res) => {
-  const baseUrl = process.env.SITE_URL || 'https://espana-hoy-production.up.railway.app';
+  const baseUrl = process.env.SITE_URL || 'https://www.espaniaalyoum.com';
   res.type('text/plain').send(
 `User-agent: *
 Allow: /
