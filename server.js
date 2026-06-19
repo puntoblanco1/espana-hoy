@@ -93,7 +93,14 @@ app.post('/api/articles/:id/view', (req, res) => {
 });
 
 // POST /api/articles — create article (webhook from n8n)
-app.post('/api/articles', (req, res) => {
+const API_SECRET = process.env.API_SECRET || 'espana2025secure';
+function requireAuth(req, res, next) {
+  const key = req.headers['x-api-key'] || req.query.key;
+  if (key !== API_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
+app.post('/api/articles', requireAuth, (req, res) => {
   const db = getDB();
   if (!db.articles) db.articles = [];
   const article = {
@@ -140,7 +147,7 @@ app.put('/api/articles/:id', (req, res) => {
 });
 
 // DELETE /api/articles/:id
-app.delete('/api/articles/:id', (req, res) => {
+app.delete('/api/articles/:id', requireAuth, (req, res) => {
   const db = getDB();
   db.articles = (db.articles||[]).filter(a => a.id !== req.params.id && a.slug !== req.params.id);
   saveDB(db);
