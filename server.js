@@ -212,6 +212,12 @@ app.post('/webhook/article', (req, res) => {
   const db = getDB();
   if (!db.articles) db.articles = [];
   const body = req.body;
+  
+  // GUARD: reject error articles from AI failures
+  if (!body.title || body.title.startsWith('خطأ في توليد') || body._skip) {
+    console.log('⚠️ Skipping error article:', body.title || 'no title');
+    return res.json({ ok: false, skipped: true, reason: 'error_article' });
+  }
   const article = {
     id: body.id || `art_${Date.now()}`,
     slug: body.slug || slugify(body.title || ''),
@@ -258,6 +264,23 @@ app.get('/api/seed-v2', (req, res) => {
     res.json({ ok: true, total: (db.articles || []).length });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+// Cleanup error articles
+app.get('/api/cleanup-errors', (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({ error: 'Forbidden' });
+  const db = getDB();
+  const before = (db.articles || []).length;
+  db.articles = (db.articles || []).filter(a => {
+    const t = a.title || '';
+    return !t.startsWith('خطأ في توليد') && !t.startsWith('Error generando') && t.length > 5;
+  });
+  const removed = before - db.articles.length;
+  saveDB(db);
+  console.log(`🧹 Cleanup: removed ${removed} error articles. Remaining: ${db.articles.length}`);
+  res.json({ ok: true, removed, remaining: db.articles.length });
+});
+
+
 
 // ============================================================
 // PAGE ROUTES
@@ -420,3 +443,4 @@ app.listen(PORT, () => {
   console.log(`🚀 إسبانيا اليوم running on port ${PORT}`);
   console.log(`📁 DB: ${fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL}`);
 });
+
