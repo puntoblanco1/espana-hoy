@@ -180,7 +180,7 @@ ul { list-style: none; }
 .nav-menu {
   display: flex;
   align-items: stretch;
-  overflow-x: auto;
+  overflow: visible;
   scrollbar-width: none;
 }
 .nav-menu::-webkit-scrollbar { display: none; }
@@ -1331,3 +1331,4 @@ ul { list-style: none; }
   .cc-banner-actions { justify-content: stretch; }
   .cc-btn { flex: 1; }
 }
+
