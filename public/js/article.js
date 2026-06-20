@@ -110,6 +110,7 @@ async function loadArticle() {
     if (!res.ok) throw new Error('not found');
     const article = await res.json();
     renderArticle(article);
+    injectSchema(article);
     trackView(id);
     fetchRelated(article.category, id);
     renderUsefulLinks(article.category);
@@ -550,5 +551,99 @@ function renderUsefulLinks(cat) {
   const shareBar = articleMain.querySelector('.share-bar');
   if (shareBar) {
     shareBar.parentNode.insertBefore(block, shareBar);
+  }
+}
+
+
+/* ===== Schema.org JSON-LD Injection ===== */
+function injectSchema(a) {
+  const title   = a.title || a.arabic_title || '';
+  const summary = a.summary || a.arabic_summary || '';
+  const content = a.content || a.contentAr || a.arabic_content || '';
+  const image   = a.image || a.image_url || a.imageUrl || '';
+  const cat     = a.category || 'local-news';
+  const catLabel = CAT_LABELS[cat] || 'أخبار';
+  const slug    = a.arabic_slug || a.slug || a.id;
+  const url     = `https://espaniaalyoum.com/article/${slug}`;
+  const datePublished = a.createdAt || a.publishedAt || new Date().toISOString();
+  const dateModified  = a.updatedAt || datePublished;
+
+  // Strip HTML tags for plain text word count
+  const plainText = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const wordCount = plainText.split(' ').filter(Boolean).length;
+
+  // 1. NewsArticle schema
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": title,
+    "description": summary,
+    "articleBody": plainText.substring(0, 500),
+    "wordCount": wordCount,
+    "url": url,
+    "mainEntityOfPage": { "@type": "WebPage", "@id": url },
+    "datePublished": datePublished,
+    "dateModified": dateModified,
+    "author": {
+      "@type": "Organization",
+      "name": "فريق التحرير — إسبانيا اليوم",
+      "url": "https://espaniaalyoum.com/about"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "إسبانيا اليوم | España Hoy",
+      "url": "https://espaniaalyoum.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://espaniaalyoum.com/favicon.ico",
+        "width": 60,
+        "height": 60
+      }
+    },
+    "inLanguage": "ar",
+    "articleSection": catLabel,
+    "keywords": (a.tags || []).join(', ')
+  };
+  if (image) {
+    articleSchema.image = {
+      "@type": "ImageObject",
+      "url": image,
+      "width": 800,
+      "height": 450
+    };
+  }
+  const schemaEl = document.getElementById('schema-article');
+  if (schemaEl) schemaEl.textContent = JSON.stringify(articleSchema);
+
+  // 2. BreadcrumbList schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": "https://espaniaalyoum.com" },
+      { "@type": "ListItem", "position": 2, "name": catLabel, "item": `https://espaniaalyoum.com/category/${cat}` },
+      { "@type": "ListItem", "position": 3, "name": title, "item": url }
+    ]
+  };
+  const breadcrumbEl = document.getElementById('schema-breadcrumb');
+  if (breadcrumbEl) breadcrumbEl.textContent = JSON.stringify(breadcrumbSchema);
+
+  // 3. FAQPage schema — only if article has FAQ
+  const faqs = a.faq || a.faqs || [];
+  if (faqs.length > 0) {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map(f => ({
+        "@type": "Question",
+        "name": f.q || f.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": f.a || f.answer
+        }
+      }))
+    };
+    const faqEl = document.getElementById('schema-faq');
+    if (faqEl) faqEl.textContent = JSON.stringify(faqSchema);
   }
 }
