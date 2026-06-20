@@ -238,10 +238,25 @@ function renderArticle(a) {
 
     <div class="share-bar">
       <span>شارك المقال:</span>
-      <button class="share-btn share-fb" onclick="share('facebook')"><i class="fab fa-facebook-f"></i> فيسبوك</button>
       <button class="share-btn share-wa" onclick="share('whatsapp')"><i class="fab fa-whatsapp"></i> واتساب</button>
+      <button class="share-btn share-fb" onclick="share('facebook')"><i class="fab fa-facebook-f"></i> فيسبوك</button>
       <button class="share-btn share-tw" onclick="share('twitter')"><i class="fab fa-x-twitter"></i> X</button>
+      <button class="share-btn share-tg" onclick="share('telegram')"><i class="fab fa-telegram"></i> تيليجرام</button>
       <button class="share-btn share-cp" onclick="copyLink()"><i class="far fa-copy"></i> نسخ</button>
+    </div>
+
+    <div class="share-cta-block">
+      <div class="share-cta-icon">📢</div>
+      <div class="share-cta-text">
+        <strong>هل أفادك هذا المقال؟</strong>
+        <p>شاركه مع العرب في إسبانيا — ممكن يساعد شخصاً يبحث عن هذه المعلومة الآن</p>
+      </div>
+      <div class="share-cta-btns">
+        <button class="share-cta-btn wa" onclick="share('whatsapp')"><i class="fab fa-whatsapp"></i> شارك على واتساب</button>
+        <button class="share-cta-btn fb" onclick="share('facebook')"><i class="fab fa-facebook-f"></i> شارك على فيسبوك</button>
+        <button class="share-cta-btn tg" onclick="share('telegram')"><i class="fab fa-telegram"></i> تيليجرام</button>
+        <button class="share-cta-btn cp" onclick="copyLink()"><i class="far fa-copy"></i> نسخ الرابط</button>
+      </div>
     </div>
 
     <!-- AD ZONE 2 — بعد المشاركة -->
@@ -277,8 +292,9 @@ function share(platform) {
   const title = encodeURIComponent(document.getElementById('page-title').textContent);
   const urls = {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-    whatsapp: `https://api.whatsapp.com/send?text=${title}%20${url}`,
-    twitter: `https://twitter.com/intent/tweet?url=${url}&text=${title}`
+    whatsapp: `https://api.whatsapp.com/send?text=${title}%0A%0A${url}`,
+    twitter:  `https://twitter.com/intent/tweet?url=${url}&text=${title}`,
+    telegram: `https://t.me/share/url?url=${url}&text=${title}`
   };
   window.open(urls[platform], '_blank', 'width=600,height=400');
 }
@@ -647,3 +663,13 @@ function injectSchema(a) {
     if (faqEl) faqEl.textContent = JSON.stringify(faqSchema);
   }
 }
+
+/* ===== Floating Share Bar ===== */
+function initFloatShare() {
+  const bar = document.getElementById('float-share');
+  if (!bar) return;
+  window.addEventListener('scroll', () => {
+    bar.classList.toggle('visible', window.scrollY > 300);
+  }, { passive: true });
+}
+document.addEventListener('DOMContentLoaded', initFloatShare);
