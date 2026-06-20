@@ -282,6 +282,22 @@ app.get('/api/cleanup-errors', (req, res) => {
 
 
 
+// Fix articles that have arabic_slug = "MISSING" — copy from slug field
+app.get('/api/fix-slugs', (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({ error: 'Forbidden' });
+  const db = getDB();
+  let fixed = 0;
+  (db.articles || []).forEach(a => {
+    if (!a.arabic_slug || a.arabic_slug === 'MISSING') {
+      a.arabic_slug = a.slug || a.id;
+      fixed++;
+    }
+  });
+  saveDB(db);
+  console.log(`🔧 fix-slugs: fixed ${fixed} articles`);
+  res.json({ ok: true, fixed, total: (db.articles||[]).length });
+});
+
 // ============================================================
 // PAGE ROUTES
 // ============================================================
