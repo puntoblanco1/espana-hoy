@@ -112,6 +112,7 @@ async function loadArticle() {
     renderArticle(article);
     trackView(id);
     fetchRelated(article.category, id);
+    renderUsefulLinks(article.category);
   } catch(e) {
     show404();
   }
@@ -396,4 +397,158 @@ function showToast(msg) {
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+
+/* ===== Useful Links by Category ===== */
+const USEFUL_LINKS = {
+  housing: {
+    title: '🏠 ابحث عن سكن في إسبانيا',
+    links: [
+      { name: 'Idealista', desc: 'أكبر موقع عقارات في إسبانيا', icon: '🏡', url: 'https://www.idealista.com' },
+      { name: 'Fotocasa', desc: 'شقق وعقارات للإيجار والبيع', icon: '🔑', url: 'https://www.fotocasa.es' },
+      { name: 'Pisos.com', desc: 'آلاف العروض العقارية', icon: '🏢', url: 'https://www.pisos.com' },
+      { name: 'Habitaclia', desc: 'عقارات في كتالونيا والبلنسية', icon: '🏘️', url: 'https://www.habitaclia.com' },
+    ]
+  },
+  jobs: {
+    title: '💼 ابحث عن عمل في إسبانيا',
+    links: [
+      { name: 'InfoJobs', desc: 'أكبر بوابة وظائف في إسبانيا', icon: '💼', url: 'https://www.infojobs.net' },
+      { name: 'LinkedIn España', desc: 'فرص عمل وتواصل مهني', icon: '🔗', url: 'https://www.linkedin.com/jobs' },
+      { name: 'Indeed España', desc: 'ملايين الوظائف في إسبانيا', icon: '🔍', url: 'https://es.indeed.com' },
+      { name: 'Trabaja con nosotros', desc: 'وظائف في الإدارة الإسبانية', icon: '🏛️', url: 'https://www.sepe.es/HomeSepe/que-es-el-sepe/trabajar-en-el-sepe.html' },
+    ]
+  },
+  immigration: {
+    title: '✈️ موارد الهجرة',
+    links: [
+      { name: 'Extranjería', desc: 'إجراءات الإقامة الرسمية', icon: '📋', url: 'https://www.inclusion.gob.es/web/migraciones/en-tramites/extranjeria' },
+      { name: 'Sede Electrónica', desc: 'الموقع الإلكتروني للحكومة', icon: '🖥️', url: 'https://sede.administracionespublicas.gob.es' },
+      { name: 'Cita Previa', desc: 'حجز موعد إداري', icon: '📅', url: 'https://sede.administracionespublicas.gob.es/icpplus' },
+      { name: 'Policia.es', desc: 'الشرطة الوطنية — NIE وجوازات', icon: '🔵', url: 'https://www.policia.es/nie.html' },
+    ]
+  },
+  residency: {
+    title: '📋 الإقامة والوثائق',
+    links: [
+      { name: 'Extranjería', desc: 'إجراءات الإقامة الرسمية', icon: '📋', url: 'https://www.inclusion.gob.es/web/migraciones/en-tramites/extranjeria' },
+      { name: 'Cita Previa NIE', desc: 'حجز موعد للـ NIE', icon: '📅', url: 'https://sede.administracionespublicas.gob.es/icpplus' },
+      { name: 'Empadronamiento', desc: 'تسجيل الإقامة في البلدية', icon: '🏠', url: 'https://www.padron.gob.es' },
+      { name: 'Consulado Árabe', desc: 'قنصليات الدول العربية', icon: '🌍', url: 'https://www.exteriores.gob.es' },
+    ]
+  },
+  education: {
+    title: '📚 التعليم في إسبانيا',
+    links: [
+      { name: 'Ministerio Educación', desc: 'وزارة التعليم الإسبانية', icon: '🏫', url: 'https://www.educacion.gob.es' },
+      { name: 'Cervantes.es', desc: 'تعلم الإسبانية مجاناً', icon: '📖', url: 'https://www.cervantes.es' },
+      { name: 'Universidad.es', desc: 'دليل الجامعات الإسبانية', icon: '🎓', url: 'https://www.universidad.es' },
+      { name: 'Becas MEC', desc: 'المنح الدراسية الحكومية', icon: '💰', url: 'https://www.becaseducacion.gob.es' },
+    ]
+  },
+  'cost-of-living': {
+    title: '💰 تكلفة المعيشة',
+    links: [
+      { name: 'Numbeo España', desc: 'مقارنة تكاليف المعيشة', icon: '📊', url: 'https://www.numbeo.com/cost-of-living/country_result.jsp?country=Spain' },
+      { name: 'OCU', desc: 'منظمة حماية المستهلك', icon: '🛡️', url: 'https://www.ocu.org' },
+      { name: 'Idealo Supermercados', desc: 'مقارنة أسعار السوبرماركت', icon: '🛒', url: 'https://www.idealo.es' },
+      { name: 'Mercadona Online', desc: 'تسوق من Mercadona', icon: '🏪', url: 'https://www.mercadona.es' },
+    ]
+  },
+  'government-benefits': {
+    title: '🏛️ المزايا الحكومية',
+    links: [
+      { name: 'SEPE', desc: 'الخدمة العامة للتشغيل', icon: '🏛️', url: 'https://www.sepe.es' },
+      { name: 'Seguridad Social', desc: 'الضمان الاجتماعي', icon: '🛡️', url: 'https://www.seg-social.es' },
+      { name: 'IMSERSO', desc: 'مزايا كبار السن والعجز', icon: '👴', url: 'https://www.imserso.es' },
+      { name: 'Hacienda', desc: 'مصلحة الضرائب — تقديم الإقرار', icon: '📄', url: 'https://www.agenciatributaria.es' },
+    ]
+  },
+  'crime-safety': {
+    title: '🛡️ الأمن والسلامة',
+    links: [
+      { name: 'Policía Nacional', desc: 'الشرطة الوطنية الإسبانية', icon: '🔵', url: 'https://www.policia.es' },
+      { name: 'Guardia Civil', desc: 'الحرس المدني', icon: '🟢', url: 'https://www.guardiacivil.es' },
+      { name: 'Emergencias 112', desc: 'رقم الطوارئ الأوروبي', icon: '🚨', url: 'https://www.112.es' },
+      { name: 'Denuncias Online', desc: 'تقديم شكوى إلكترونية', icon: '📝', url: 'https://denuncias.policia.es' },
+    ]
+  },
+  tourism: {
+    title: '🗺️ السياحة في إسبانيا',
+    links: [
+      { name: 'Spain.info', desc: 'الموقع السياحي الرسمي', icon: '🌍', url: 'https://www.spain.info/ar' },
+      { name: 'Booking España', desc: 'احجز فندقك في إسبانيا', icon: '🏨', url: 'https://www.booking.com/country/es.ar.html' },
+      { name: 'Renfe Trenes', desc: 'حجز تذاكر القطار', icon: '🚄', url: 'https://www.renfe.com' },
+      { name: 'Google Maps España', desc: 'خرائط وأماكن سياحية', icon: '🗺️', url: 'https://maps.google.com' },
+    ]
+  },
+  'local-news': {
+    title: '📰 مصادر الأخبار',
+    links: [
+      { name: 'El País', desc: 'أكبر صحيفة إسبانية', icon: '📰', url: 'https://elpais.com' },
+      { name: 'El Mundo', desc: 'أخبار إسبانيا والعالم', icon: '🌐', url: 'https://www.elmundo.es' },
+      { name: 'RTVE Noticias', desc: 'التلفزيون والراديو الإسباني', icon: '📺', url: 'https://www.rtve.es/noticias' },
+      { name: 'El Confidencial', desc: 'أخبار اقتصادية وسياسية', icon: '📊', url: 'https://www.elconfidencial.com' },
+    ]
+  },
+  business: {
+    title: '💹 الأعمال في إسبانيا',
+    links: [
+      { name: 'Autónomos RETA', desc: 'تسجيل العمل الحر', icon: '💼', url: 'https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/Afiliacion/10548' },
+      { name: 'Crea tu empresa', desc: 'تأسيس شركة في إسبانيا', icon: '🏢', url: 'https://www.creatuempresa.org' },
+      { name: 'Cámaras de Comercio', desc: 'غرفة التجارة الإسبانية', icon: '🤝', url: 'https://www.camara.es' },
+      { name: 'ICEX España', desc: 'فرص التجارة والاستثمار', icon: '📈', url: 'https://www.icex.es' },
+    ]
+  }
+};
+
+function renderUsefulLinks(cat) {
+  const data = USEFUL_LINKS[cat];
+  if (!data) return;
+
+  // === Sidebar Widget ===
+  const widget = document.getElementById('useful-links-widget');
+  const titleEl = document.getElementById('useful-links-title');
+  const bodyEl = document.getElementById('useful-links-body');
+  if (widget && titleEl && bodyEl) {
+    titleEl.textContent = data.title;
+    bodyEl.innerHTML = data.links.map(l => `
+      <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="useful-link-item">
+        <div class="useful-link-icon">${l.icon}</div>
+        <div class="useful-link-text">
+          <div class="useful-link-name">${l.name}</div>
+          <div class="useful-link-desc">${l.desc}</div>
+        </div>
+        <i class="fas fa-external-link-alt useful-link-arrow"></i>
+      </a>`).join('');
+    widget.style.display = '';
+  }
+
+  // === End of Article Block ===
+  const articleMain = document.getElementById('article-main');
+  if (!articleMain) return;
+  const existing = document.getElementById('article-resources-block');
+  if (existing) return; // already rendered
+
+  const block = document.createElement('div');
+  block.id = 'article-resources-block';
+  block.className = 'article-resources';
+  block.innerHTML = `
+    <div class="article-resources-title">
+      <i class="fas fa-link"></i> روابط مفيدة — ${data.title}
+    </div>
+    <div class="article-resources-grid">
+      ${data.links.map(l => `
+        <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="resource-card">
+          <span class="resource-card-icon">${l.icon}</span>
+          <span>${l.name}</span>
+        </a>`).join('')}
+    </div>`;
+
+  // Insert before the share bar (after article body)
+  const shareBar = articleMain.querySelector('.share-bar');
+  if (shareBar) {
+    shareBar.parentNode.insertBefore(block, shareBar);
+  }
 }
