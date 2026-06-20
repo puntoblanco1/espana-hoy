@@ -25,6 +25,15 @@
   <script type="application/ld+json" id="schema-breadcrumb"></script>
   <script type="application/ld+json" id="schema-faq"></script>
 
+  <!-- FLOATING SHARE BAR -->
+  <div class="float-share" id="float-share" aria-label="مشاركة سريعة">
+    <div class="float-share-label">شارك</div>
+    <button class="float-btn float-wa" onclick="share('whatsapp')" title="واتساب"><i class="fab fa-whatsapp"></i></button>
+    <button class="float-btn float-fb" onclick="share('facebook')" title="فيسبوك"><i class="fab fa-facebook-f"></i></button>
+    <button class="float-btn float-tg" onclick="share('telegram')" title="تيليجرام"><i class="fab fa-telegram"></i></button>
+    <button class="float-btn float-cp" onclick="copyLink()" title="نسخ الرابط"><i class="far fa-copy"></i></button>
+  </div>
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VZWK1JZ0YJ"></script>
   <script>
