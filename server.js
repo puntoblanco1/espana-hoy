@@ -309,6 +309,8 @@ app.get('/about', (req, res) => res.sendFile(path.join(PUBLIC, 'about.html')));
 app.get('/contact', (req, res) => res.sendFile(path.join(PUBLIC, 'contact.html')));
 app.get('/privacy', (req, res) => res.sendFile(path.join(PUBLIC, 'privacy.html')));
 app.get('/search', (req, res) => res.sendFile(path.join(PUBLIC, 'search.html')));
+app.get('/jobs', (req, res) => res.sendFile(path.join(PUBLIC, 'jobs.html')));
+app.get('/housing', (req, res) => res.sendFile(path.join(PUBLIC, 'housing.html')));
 
 // Category routes — serve category.html for all /category/* paths
 app.get('/category/:cat', (req, res) => {
@@ -328,7 +330,7 @@ app.get('/sitemap.xml', (req, res) => {
   const articles = (db.articles||[]).filter(a=>a.status==='published'||!a.status);
   const baseUrl = process.env.SITE_URL || 'https://www.espaniaalyoum.com';
 
-  const staticUrls = ['/', '/about', '/contact', '/privacy',
+  const staticUrls = ['/', '/about', '/contact', '/privacy', '/jobs', '/housing',
     '/category/immigration','/category/residency','/category/jobs',
     '/category/housing','/category/education','/category/cost-of-living',
     '/category/government-benefits','/category/crime-safety',
