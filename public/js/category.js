@@ -1,3 +1,11 @@
+
+// ✅ Helper: never use "MISSING" arabic_slug
+function getArticleSlug(a) {
+  const s = a.arabic_slug;
+  if (s && s !== 'MISSING' && s.length > 3) return s;
+  return a.slug || a.id;
+}
+
 /* ===================================
    إسبانيا اليوم — category.js
    =================================== */
@@ -128,7 +136,7 @@ function renderGrid(reset=true) {
       : `<div class="article-card-thumb-placeholder">${icon}</div>`;
     const card = document.createElement('a');
     card.className = 'article-card';
-    card.href = `/article?id=${a.slug||a.id}`;
+    card.href = `/article/${getArticleSlug(a)}`;
     card.innerHTML = `
       ${imgHtml}
       <div class="article-card-body">
@@ -174,3 +182,4 @@ function formatDate(ds){
 }
 function readTime(a){return Math.max(2,Math.ceil((a.content||a.contentAr||'').split(/\s+/).length/200));}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
