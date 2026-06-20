@@ -2,6 +2,15 @@
    إسبانيا اليوم — app.js v2
    =================================== */
 
+
+// ✅ Helper: get the best slug for linking - never use "MISSING" arabic_slug
+function getArticleSlug(a) {
+  const s = a.arabic_slug;
+  if (s && s !== 'MISSING' && s.length > 3) return s;
+  return a.slug || a.id;
+}
+
+
 const API_BASE = '';
 const CAT_LABELS = {
   immigration: 'الهجرة', residency: 'الإقامة', jobs: 'الوظائف',
@@ -146,7 +155,7 @@ function renderHero() {
   const hero = allArticles[0];
   const cat = hero.category || 'local-news';
   const catLabel = CAT_LABELS[cat] || 'أخبار';
-  const slug = hero.arabic_slug || hero.slug || hero.id;
+  const slug = getArticleSlug(hero);
   const img = imgUrl(hero);
   const imageHtml = img
     ? `<img class="hero-img" src="${img}" alt="${escHtml(hero.title || hero.arabic_title)}" loading="eager" fetchpriority="high" onerror="this.style.display='none'">`
@@ -175,7 +184,7 @@ function renderHero() {
       ? lazyImg(aImg, a.title||a.arabic_title, 'side-card-img', false)
       : `<div class="side-card-img-placeholder">${CAT_ICONS[c] || '📰'}</div>`;
     return `
-      <a href="/article/${a.arabic_slug||a.slug||a.id}" class="side-card">
+      <a href="/article/${getArticleSlug(a)}" class="side-card">
         ${imgHtml}
         <div class="side-card-body">
           <div class="side-card-cat">${CAT_LABELS[c] || 'أخبار'}</div>
@@ -215,7 +224,7 @@ function renderArticleGrid(reset = true) {
       : `<div class="article-card-thumb-placeholder">${CAT_ICONS[cat] || '📰'}</div>`;
     const card = document.createElement('a');
     card.className = 'article-card';
-    card.href = `/article/${a.arabic_slug||a.slug||a.id}`;
+    card.href = `/article/${getArticleSlug(a)}`;
     card.innerHTML = `
       ${imgHtml}
       <div class="article-card-body">
@@ -251,7 +260,7 @@ function renderMostRead() {
   const list = document.getElementById('most-read-list');
   const top5 = [...allArticles].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
   list.innerHTML = top5.map((a, i) => `
-    <a href="/article/${a.arabic_slug||a.slug||a.id}" class="most-read-item">
+    <a href="/article/${getArticleSlug(a)}" class="most-read-item">
       <div class="most-read-num">${i + 1}</div>
       <div>
         <div class="most-read-title">${escHtml(a.title||a.arabic_title)}</div>
@@ -266,7 +275,7 @@ function renderTicker() {
   if (!recent.length) return;
   const items = [...recent, ...recent];
   track.innerHTML = items.map(a =>
-    `<span class="ticker-item" onclick="window.location.href='/article/${a.arabic_slug||a.slug||a.id}'" style="cursor:pointer">${escHtml(a.title||a.arabic_title)}</span>`
+    `<span class="ticker-item" onclick="window.location.href='/article/${getArticleSlug(a)}'" style="cursor:pointer">${escHtml(a.title||a.arabic_title)}</span>`
   ).join('');
   track.style.animation = 'none';
   track.offsetHeight;
@@ -337,3 +346,4 @@ function showToast(msg, dur = 3000) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), dur);
 }
+
