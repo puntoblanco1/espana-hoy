@@ -438,7 +438,7 @@ app.get('/api/seed-now', (req, res) => {
 app.get('/api/gen-evergreen', async (req, res) => {
   if (req.query.key !== 'espana2025') return res.status(403).json({error:'forbidden'});
   const startIdx = parseInt(req.query.start || '0');
-  const count    = parseInt(req.query.count || '5');
+  const count    = parseInt(req.query.count || '1');  // default 1 للـ free model
   const topics   = EVERGREEN_TOPICS.slice(startIdx, startIdx + count);
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -480,8 +480,8 @@ app.get('/api/gen-evergreen', async (req, res) => {
       results.push({title:topic.title, status:'error', error:e.message});
     }
     if (i < topics.length - 1) {
-      res.write(`  ⏳ انتظار 35 ثانية للـ rate limit...\n`);
-      await new Promise(r => setTimeout(r, 35000));
+      res.write(`  ⏳ انتظار 90 ثانية للـ rate limit...\n`);
+      await new Promise(r => setTimeout(r, 90000));
     }
   }
   const ok = results.filter(r=>r.status==='ok').length;
@@ -559,7 +559,7 @@ async function generateEvergreen(topic, retries = 3) {
     try {
       const result = await new Promise((resolve, reject) => {
         const body = JSON.stringify({
-          model: 'google/gemini-2.0-flash-001',
+          model: 'meta-llama/llama-3.3-70b-instruct:free',
           max_tokens: 2000,
           messages: [
             {role:'system', content: EVERGREEN_SYSTEM},
@@ -598,7 +598,7 @@ async function generateEvergreen(topic, retries = 3) {
       return result;
     } catch(e) {
       if (attempt < retries && (e.message.includes('429') || e.message.includes('api_error'))) {
-        await new Promise(r => setTimeout(r, 60000 * attempt)); // 60s, 120s backoff
+        await new Promise(r => setTimeout(r, 90000 * attempt)); // 90s, 180s backoff
         continue;
       }
       throw e;
