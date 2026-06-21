@@ -433,6 +433,64 @@ app.get('/api/seed-now', (req, res) => {
 });
 
 // ============================================================
+// EVERGREEN ENDPOINT — moved here before 404 handler
+// ============================================================
+app.get('/api/gen-evergreen', async (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({error:'forbidden'});
+  const startIdx = parseInt(req.query.start || '0');
+  const count    = parseInt(req.query.count || '5');
+  const topics   = EVERGREEN_TOPICS.slice(startIdx, startIdx + count);
+
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Transfer-Encoding', 'chunked');
+  res.write(`🚀 بدء توليد ${topics.length} مقالات Evergreen (من ${startIdx})...\n\n`);
+
+  const results = [];
+  for (let i = 0; i < topics.length; i++) {
+    const topic = topics[i];
+    res.write(`[${startIdx+i+1}/20] 📝 ${topic.title.substring(0,50)}...\n`);
+    try {
+      const data = await generateEvergreen(topic);
+      const arabic_slug = slugifyAr(data.title);
+      const db = JSON.parse(fs.readFileSync(fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL, 'utf8'));
+      const exists = (db.articles||[]).some(a => a.arabic_slug === arabic_slug || a.title === data.title);
+      if (exists) {
+        res.write(`  ⏭️  موجود بالفعل — تخطي\n`);
+        results.push({title:data.title, status:'skipped'});
+        continue;
+      }
+      const article = {
+        id: `evg_${Date.now()}_${i}`,
+        title: data.title, arabic_title: data.title,
+        summary: data.summary||'', arabic_summary: data.summary||'',
+        content: data.content||'', arabic_content: data.content||'',
+        category: topic.cat, arabic_slug,
+        tags: data.tags||[], source: 'evergreen', isEvergreen: true,
+        status: 'published', views: 0,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      };
+      db.articles = db.articles || [];
+      db.articles.unshift(article);
+      const dbPath = fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL;
+      fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+      res.write(`  ✅ تم الحفظ — ${arabic_slug}\n`);
+      results.push({title:data.title, status:'ok'});
+    } catch(e) {
+      res.write(`  ❌ خطأ: ${e.message.substring(0,100)}\n`);
+      results.push({title:topic.title, status:'error', error:e.message});
+    }
+    if (i < topics.length - 1) {
+      res.write(`  ⏳ انتظار 8 ثواني...\n`);
+      await new Promise(r => setTimeout(r, 8000));
+    }
+  }
+  const ok = results.filter(r=>r.status==='ok').length;
+  res.write(`\n✅ اكتمل: ${ok}/${topics.length} مقال\n`);
+  res.write(`الخطوة التالية: /api/gen-evergreen?key=espana2025&start=${startIdx+count}&count=5\n`);
+  res.end();
+});
+
+// ============================================================
 // 404 handler
 // ============================================================
 app.use((req, res) => {
@@ -535,70 +593,6 @@ async function generateEvergreen(topic) {
     req.end();
   });
 }
-
-app.get('/api/gen-evergreen', async (req, res) => {
-  if (req.query.key !== 'espana2025') return res.status(403).json({error:'forbidden'});
-  const startIdx = parseInt(req.query.start || '0');
-  const count    = parseInt(req.query.count || '5');
-  const topics   = EVERGREEN_TOPICS.slice(startIdx, startIdx + count);
-
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-  res.setHeader('Transfer-Encoding', 'chunked');
-  res.write(`🚀 بدء توليد ${topics.length} مقالات Evergreen (من ${startIdx})...\n\n`);
-
-  const results = [];
-  for (let i = 0; i < topics.length; i++) {
-    const topic = topics[i];
-    res.write(`[${startIdx+i+1}/20] 📝 ${topic.title.substring(0,50)}...\n`);
-    try {
-      const data = await generateEvergreen(topic);
-      const arabic_slug = slugifyAr(data.title);
-      // Check if already exists
-      const db = JSON.parse(fs.readFileSync(fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL, 'utf8'));
-      const exists = (db.articles||[]).some(a => a.arabic_slug === arabic_slug || a.title === data.title);
-      if (exists) {
-        res.write(`  ⏭️  موجود بالفعل — تخطي\n`);
-        results.push({title:data.title, status:'skipped'});
-        continue;
-      }
-      const article = {
-        id: `evg_${Date.now()}_${i}`,
-        title: data.title,
-        arabic_title: data.title,
-        summary: data.summary||'',
-        arabic_summary: data.summary||'',
-        content: data.content||'',
-        arabic_content: data.content||'',
-        category: topic.cat,
-        arabic_slug,
-        tags: data.tags||[],
-        source: 'evergreen',
-        isEvergreen: true,
-        status: 'published',
-        views: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      db.articles = db.articles || [];
-      db.articles.unshift(article);
-      const dbPath = fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL;
-      fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-      res.write(`  ✅ تم الحفظ — ${arabic_slug}\n`);
-      results.push({title:data.title, status:'ok'});
-    } catch(e) {
-      res.write(`  ❌ خطأ: ${e.message.substring(0,100)}\n`);
-      results.push({title:topic.title, status:'error', error:e.message});
-    }
-    if (i < topics.length - 1) {
-      res.write(`  ⏳ انتظار 8 ثواني...\n`);
-      await new Promise(r => setTimeout(r, 8000));
-    }
-  }
-  const ok = results.filter(r=>r.status==='ok').length;
-  res.write(`\n✅ اكتمل: ${ok}/${topics.length} مقال\n`);
-  res.write(`الخطوة التالية: /api/gen-evergreen?key=espana2025&start=${startIdx+count}&count=5\n`);
-  res.end();
-});
 
 // ============================================================
 // START
