@@ -480,8 +480,8 @@ app.get('/api/gen-evergreen', async (req, res) => {
       results.push({title:topic.title, status:'error', error:e.message});
     }
     if (i < topics.length - 1) {
-      res.write(`  ⏳ انتظار 8 ثواني...\n`);
-      await new Promise(r => setTimeout(r, 8000));
+      res.write(`  ⏳ انتظار 35 ثانية للـ rate limit...\n`);
+      await new Promise(r => setTimeout(r, 35000));
     }
   }
   const ok = results.filter(r=>r.status==='ok').length;
@@ -553,45 +553,57 @@ function slugifyAr(text) {
   return (text||'').replace(/[^\u0600-\u06FF\s]/g,'').replace(/\s+/g,'-').substring(0,80).replace(/-+$/,'');
 }
 
-async function generateEvergreen(topic) {
+async function generateEvergreen(topic, retries = 3) {
   const https = require('https');
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
-      max_tokens: 2000,
-      messages: [
-        {role:'system', content: EVERGREEN_SYSTEM},
-        {role:'user',   content: `اكتب مقالاً شاملاً بعنوان: ${topic.title}\nالتصنيف: ${topic.cat}`}
-      ]
-    });
-    const options = {
-      hostname: 'openrouter.ai',
-      path: '/api/v1/chat/completions',
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_KEY || ['sk-or-v1-37629390315f2ed3d8018618737a5858','5787857d4dfe49757e9705e58cf5589f'].join('')}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://espaniaalyoum.com',
-        'Content-Length': Buffer.byteLength(body)
-      }
-    };
-    const req = https.request(options, res => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const parsed = JSON.parse(data);
-          const raw = (parsed.choices[0].message.content||'').trim()
-            .replace(/^```json\s*/,'').replace(/\s*```$/,'');
-          resolve(JSON.parse(raw));
-        } catch(e) { reject(new Error(`parse_fail: ${data.substring(0,200)}`)); }
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const result = await new Promise((resolve, reject) => {
+        const body = JSON.stringify({
+          model: 'meta-llama/llama-3.3-70b-instruct:free',
+          max_tokens: 2000,
+          messages: [
+            {role:'system', content: EVERGREEN_SYSTEM},
+            {role:'user',   content: `اكتب مقالاً شاملاً بعنوان: ${topic.title}\nالتصنيف: ${topic.cat}`}
+          ]
+        });
+        const options = {
+          hostname: 'openrouter.ai',
+          path: '/api/v1/chat/completions',
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENROUTER_KEY || ['sk-or-v1-37629390315f2ed3d8018618737a5858','5787857d4dfe49757e9705e58cf5589f'].join('')}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://espaniaalyoum.com',
+            'Content-Length': Buffer.byteLength(body)
+          }
+        };
+        const req = https.request(options, res => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.error) { reject(new Error(`api_error: ${JSON.stringify(parsed.error).substring(0,150)}`)); return; }
+              const raw = (parsed.choices[0].message.content||'').trim()
+                .replace(/^```json\s*/,'').replace(/\s*```$/,'');
+              resolve(JSON.parse(raw));
+            } catch(e) { reject(new Error(`parse_fail: ${data.substring(0,150)}`)); }
+          });
+        });
+        req.on('error', reject);
+        req.setTimeout(90000, () => { req.destroy(); reject(new Error('timeout')); });
+        req.write(body);
+        req.end();
       });
-    });
-    req.on('error', reject);
-    req.setTimeout(60000, () => { req.destroy(); reject(new Error('timeout')); });
-    req.write(body);
-    req.end();
-  });
+      return result;
+    } catch(e) {
+      if (attempt < retries && (e.message.includes('429') || e.message.includes('api_error'))) {
+        await new Promise(r => setTimeout(r, 60000 * attempt)); // 60s, 120s backoff
+        continue;
+      }
+      throw e;
+    }
+  }
 }
 
 // ============================================================
