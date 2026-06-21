@@ -559,7 +559,7 @@ async function generateEvergreen(topic, retries = 3) {
     try {
       const result = await new Promise((resolve, reject) => {
         const body = JSON.stringify({
-          model: 'meta-llama/llama-3.3-70b-instruct:free',
+          model: 'google/gemini-2.0-flash-001',
           max_tokens: 2000,
           messages: [
             {role:'system', content: EVERGREEN_SYSTEM},
