@@ -454,6 +454,153 @@ function slugify(str) {
 }
 
 // ============================================================
+// EVERGREEN ARTICLES GENERATOR — GET /api/gen-evergreen?key=espana2025
+// ============================================================
+const EVERGREEN_TOPICS = [
+  {cat:'immigration',   title:'كيف تهاجر إلى إسبانيا قانونياً في 2026 — دليل شامل خطوة بخطوة'},
+  {cat:'immigration',   title:'تأشيرة الإقامة في إسبانيا — أنواعها وشروط الحصول عليها'},
+  {cat:'residency',     title:'كيف تجدد إقامتك في إسبانيا خطوة بخطوة 2026'},
+  {cat:'residency',     title:'الإقامة الدائمة في إسبانيا — متى تحصل عليها وما هي شروطها'},
+  {cat:'jobs',          title:'حقوقك كعامل في إسبانيا — ما لا يخبرك به صاحب العمل'},
+  {cat:'jobs',          title:'كيف تبحث عن عمل في إسبانيا بدون خبرة 2026'},
+  {cat:'housing',       title:'أرخص 5 مدن للسكن في إسبانيا للعرب في 2026'},
+  {cat:'housing',       title:'كيف تستأجر شقة في إسبانيا — الوثائق والخطوات والتكاليف'},
+  {cat:'education',     title:'الدراسة في إسبانيا مجاناً — المنح الدراسية والجامعات'},
+  {cat:'education',     title:'كيف تتعلم اللغة الإسبانية بسرعة مجاناً'},
+  {cat:'cost-of-living',title:'تكلفة المعيشة في إسبانيا بالتفصيل 2026 — كل ما تحتاج معرفته'},
+  {cat:'cost-of-living',title:'مقارنة تكلفة المعيشة في مدريد وبرشلونة وبلنسية'},
+  {cat:'government-benefits',title:'مزايا الضمان الاجتماعي في إسبانيا للمقيمين العرب'},
+  {cat:'government-benefits',title:'كيف تحصل على إعانة البطالة في إسبانيا — الشروط والخطوات'},
+  {cat:'crime-safety',  title:'أكثر المدن الإسبانية أماناً للعائلات العربية'},
+  {cat:'local-news',    title:'أفضل الأحياء العربية في مدريد وبرشلونة — دليل المقيمين'},
+  {cat:'tourism',       title:'أجمل 10 أماكن سياحية في إسبانيا لا تفوتك'},
+  {cat:'tourism',       title:'السياحة في إسبانيا بميزانية محدودة — دليل شامل'},
+  {cat:'business',      title:'كيف تفتح مشروعاً تجارياً في إسبانيا كمقيم عربي — دليل 2026'},
+  {cat:'business',      title:'العمل الحر Autónomo في إسبانيا — الضرائب والتأمين والتسجيل'},
+];
+
+const EVERGREEN_SYSTEM = `أنت محرر متخصص في شؤون العرب المقيمين في إسبانيا.
+اكتب مقالاً شاملاً باللغة العربية الفصحى السلسة بين 700 و900 كلمة.
+القواعد الصارمة:
+- لا تنسب أي أرقام أو إحصاءات لصحف بعينها (El País, El Mundo إلخ)
+- استخدم سنة 2026 في كل الإشارات الزمنية
+- أسلوب عملي ومباشر ومفيد، ليس إنشائياً
+- استخدم عناوين فرعية واضحة بـ h2 وh3
+- استخدم قوائم ul/li للخطوات والنقاط
+- ادخل في الموضوع مباشرة بدون مقدمة طويلة
+أعد JSON فقط بدون أي نص خارجه بهذا الشكل:
+{"title":"...","summary":"جملتان فقط","content":"HTML كامل","tags":["كلمة1","كلمة2","كلمة3","كلمة4","كلمة5"]}`;
+
+function slugifyAr(text) {
+  return (text||'').replace(/[^\u0600-\u06FF\s]/g,'').replace(/\s+/g,'-').substring(0,80).replace(/-+$/,'');
+}
+
+async function generateEvergreen(topic) {
+  const https = require('https');
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      max_tokens: 2000,
+      messages: [
+        {role:'system', content: EVERGREEN_SYSTEM},
+        {role:'user',   content: `اكتب مقالاً شاملاً بعنوان: ${topic.title}\nالتصنيف: ${topic.cat}`}
+      ]
+    });
+    const options = {
+      hostname: 'openrouter.ai',
+      path: '/api/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_KEY || ''}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://espaniaalyoum.com',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+    const req = https.request(options, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const raw = (parsed.choices[0].message.content||'').trim()
+            .replace(/^```json\s*/,'').replace(/\s*```$/,'');
+          resolve(JSON.parse(raw));
+        } catch(e) { reject(new Error(`parse_fail: ${data.substring(0,200)}`)); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(60000, () => { req.destroy(); reject(new Error('timeout')); });
+    req.write(body);
+    req.end();
+  });
+}
+
+app.get('/api/gen-evergreen', async (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({error:'forbidden'});
+  const startIdx = parseInt(req.query.start || '0');
+  const count    = parseInt(req.query.count || '5');
+  const topics   = EVERGREEN_TOPICS.slice(startIdx, startIdx + count);
+
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Transfer-Encoding', 'chunked');
+  res.write(`🚀 بدء توليد ${topics.length} مقالات Evergreen (من ${startIdx})...\n\n`);
+
+  const results = [];
+  for (let i = 0; i < topics.length; i++) {
+    const topic = topics[i];
+    res.write(`[${startIdx+i+1}/20] 📝 ${topic.title.substring(0,50)}...\n`);
+    try {
+      const data = await generateEvergreen(topic);
+      const arabic_slug = slugifyAr(data.title);
+      // Check if already exists
+      const db = JSON.parse(fs.readFileSync(fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL, 'utf8'));
+      const exists = (db.articles||[]).some(a => a.arabic_slug === arabic_slug || a.title === data.title);
+      if (exists) {
+        res.write(`  ⏭️  موجود بالفعل — تخطي\n`);
+        results.push({title:data.title, status:'skipped'});
+        continue;
+      }
+      const article = {
+        id: `evg_${Date.now()}_${i}`,
+        title: data.title,
+        arabic_title: data.title,
+        summary: data.summary||'',
+        arabic_summary: data.summary||'',
+        content: data.content||'',
+        arabic_content: data.content||'',
+        category: topic.cat,
+        arabic_slug,
+        tags: data.tags||[],
+        source: 'evergreen',
+        isEvergreen: true,
+        status: 'published',
+        views: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      db.articles = db.articles || [];
+      db.articles.unshift(article);
+      const dbPath = fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL;
+      fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+      res.write(`  ✅ تم الحفظ — ${arabic_slug}\n`);
+      results.push({title:data.title, status:'ok'});
+    } catch(e) {
+      res.write(`  ❌ خطأ: ${e.message.substring(0,100)}\n`);
+      results.push({title:topic.title, status:'error', error:e.message});
+    }
+    if (i < topics.length - 1) {
+      res.write(`  ⏳ انتظار 8 ثواني...\n`);
+      await new Promise(r => setTimeout(r, 8000));
+    }
+  }
+  const ok = results.filter(r=>r.status==='ok').length;
+  res.write(`\n✅ اكتمل: ${ok}/${topics.length} مقال\n`);
+  res.write(`الخطوة التالية: /api/gen-evergreen?key=espana2025&start=${startIdx+count}&count=5\n`);
+  res.end();
+});
+
+// ============================================================
 // START
 // ============================================================
 const PORT = process.env.PORT || 3000;
