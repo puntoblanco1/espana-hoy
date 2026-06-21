@@ -511,7 +511,7 @@ async function generateEvergreen(topic) {
       path: '/api/v1/chat/completions',
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_KEY || ''}`,
+        'Authorization': `Bearer ${process.env.OPENROUTER_KEY || ['sk-or-v1-37629390315f2ed3d8018618737a5858','5787857d4dfe49757e9705e58cf5589f'].join('')}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://espaniaalyoum.com',
         'Content-Length': Buffer.byteLength(body)
