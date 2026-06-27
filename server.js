@@ -466,11 +466,55 @@ app.get('/api/seed-evergreen', (req, res) => {
     for (const a of ARTS) {
       const slug = (a.title||'').replace(/[^\u0600-\u06FF\s]/g,'').replace(/\s+/g,'-').substring(0,80).replace(/-+$/,'');
       if (db.articles.some(x => x.arabic_slug === slug || x.title === a.title)) { skipped++; continue; }
-      db.articles.unshift({ id:`evg_${Date.now()}_${added}`, title:a.title, arabic_title:a.title, summary:a.summary, arabic_summary:a.summary, content:a.content, arabic_content:a.content, category:a.cat, arabic_slug:slug, tags:a.tags, source:'evergreen', isEvergreen:true, status:'published', views:0, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+      const CAT_IMAGES = {
+        'immigration':        'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80',
+        'residency':          'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=800&q=80',
+        'jobs':               'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
+        'housing':            'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+        'education':          'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
+        'cost-of-living':     'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80',
+        'government-benefits':'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+        'crime-safety':       'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80',
+        'local-news':         'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
+        'tourism':            'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',
+        'business':           'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800&q=80',
+      };
+      db.articles.unshift({ id:`evg_${Date.now()}_${added}`, title:a.title, arabic_title:a.title, summary:a.summary, arabic_summary:a.summary, content:a.content, arabic_content:a.content, category:a.cat, arabic_slug:slug, tags:a.tags, image_url: CAT_IMAGES[a.cat]||'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80', source:'evergreen', isEvergreen:true, status:'published', views:0, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
       added++;
     }
     fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
     res.json({ ok:true, added, skipped, total:db.articles.length });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// FIX IMAGES — GET /api/fix-evergreen-images?key=espana2025
+app.get('/api/fix-evergreen-images', (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({error:'forbidden'});
+  try {
+    const CAT_IMAGES = {
+      'immigration':        'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80',
+      'residency':          'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=800&q=80',
+      'jobs':               'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
+      'housing':            'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+      'education':          'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
+      'cost-of-living':     'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80',
+      'government-benefits':'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+      'crime-safety':       'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80',
+      'local-news':         'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
+      'tourism':            'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',
+      'business':           'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800&q=80',
+    };
+    const dbPath = fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL;
+    const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    let fixed = 0;
+    (db.articles||[]).forEach(a => {
+      if (!a.image_url && CAT_IMAGES[a.category]) {
+        a.image_url = CAT_IMAGES[a.category];
+        fixed++;
+      }
+    });
+    fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+    res.json({ ok:true, fixed, total: db.articles.length });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
