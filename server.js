@@ -433,6 +433,26 @@ app.get('/api/seed-now', (req, res) => {
 });
 
 // ============================================================
+// SEED EVERGREEN — GET /api/seed-evergreen?key=espana2025
+app.get('/api/seed-evergreen', (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({error:'forbidden'});
+  try {
+    const dbPath = fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL;
+    const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    db.articles = db.articles || [];
+    const ARTS = require('/tmp/ev_data.json');
+    let added = 0, skipped = 0;
+    for (const a of ARTS) {
+      const slug = (a.title||'').replace(/[^\u0600-\u06FF\s]/g,'').replace(/\s+/g,'-').substring(0,80).replace(/-+$/,'');
+      if (db.articles.some(x => x.arabic_slug === slug || x.title === a.title)) { skipped++; continue; }
+      db.articles.unshift({ id:`evg_${Date.now()}_${added}`, title:a.title, arabic_title:a.title, summary:a.summary, arabic_summary:a.summary, content:a.content, arabic_content:a.content, category:a.cat, arabic_slug:slug, tags:a.tags, source:'evergreen', isEvergreen:true, status:'published', views:0, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+      added++;
+    }
+    fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+    res.json({ ok:true, added, skipped, total:db.articles.length });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // EVERGREEN ENDPOINT — moved here before 404 handler
 // ============================================================
 app.get('/api/gen-evergreen', async (req, res) => {
