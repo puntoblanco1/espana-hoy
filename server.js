@@ -341,7 +341,8 @@ app.get('/sitemap.xml', (req, res) => {
     '/category/immigration','/category/residency','/category/jobs',
     '/category/housing','/category/education','/category/cost-of-living',
     '/category/government-benefits','/category/crime-safety',
-    '/category/local-news','/category/tourism','/category/business'
+    '/category/local-news','/category/tourism','/category/business',
+    '/city/madrid','/city/barcelona','/city/valencia','/city/sevilla','/city/malaga'
   ].map(u => `
   <url>
     <loc>${baseUrl}${u}</loc>
