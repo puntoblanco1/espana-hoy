@@ -311,6 +311,13 @@ app.get('/privacy', (req, res) => res.sendFile(path.join(PUBLIC, 'privacy.html')
 app.get('/search', (req, res) => res.sendFile(path.join(PUBLIC, 'search.html')));
 app.get('/jobs', (req, res) => res.sendFile(path.join(PUBLIC, 'jobs.html')));
 app.get('/housing', (req, res) => res.sendFile(path.join(PUBLIC, 'housing.html')));
+app.get('/city/:citySlug', (req, res) => {
+  const validCities = ['madrid','barcelona','valencia','sevilla','malaga'];
+  const slug = req.params.citySlug;
+  if (!validCities.includes(slug)) return res.redirect('/');
+  res.sendFile(path.join(PUBLIC, 'cities', `${slug}.html`));
+});
+app.get('/cities', (req, res) => res.redirect('/'));
 
 // Category routes — serve category.html for all /category/* paths
 app.get('/category/:cat', (req, res) => {
