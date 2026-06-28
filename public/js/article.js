@@ -305,20 +305,48 @@ function copyLink() {
 
 async function fetchRelated(cat, currentId) {
   try {
-    const res = await fetch(`/api/articles?limit=6`);
+    const res = await fetch(`/api/articles?limit=20`);
     const data = await res.json();
     const all = (data.articles || data || []);
-    // First try same category, then any
-    let related = all.filter(a => a.category===cat && (a.arabic_slug||a.slug||a.id) !== currentId).slice(0,3);
+    // Same category first
+    let related = all.filter(a => a.category===cat && (a.arabic_slug||a.slug||a.id) !== currentId).slice(0,4);
     if (related.length < 3) {
-      const others = all.filter(a => a.category!==cat && (a.arabic_slug||a.slug||a.id) !== currentId).slice(0, 3-related.length);
+      const others = all.filter(a => a.category!==cat && (a.arabic_slug||a.slug||a.id) !== currentId).slice(0, 4-related.length);
       related = [...related, ...others];
     }
 
+    // ===== 1. INTERNAL LINKS INJECTED INTO ARTICLE BODY =====
+    // Insert "اقرأ أيضاً" box after 3rd paragraph inside .article-body
+    if (related.length >= 2) {
+      const bodyEl = document.querySelector('.article-body');
+      if (bodyEl) {
+        const paras = bodyEl.querySelectorAll('p, h2, h3');
+        const injectAfter = paras[2] || paras[paras.length - 1]; // after 3rd paragraph
+        if (injectAfter) {
+          const internalBox = document.createElement('div');
+          internalBox.className = 'internal-links-box';
+          const pick = related.slice(0, 3);
+          internalBox.innerHTML = `
+            <div class="internal-links-header"><i class="fas fa-link"></i> اقرأ أيضاً</div>
+            <ul class="internal-links-list">
+              ${pick.map(a => {
+                const aC = a.category || 'local-news';
+                const catLbl = {immigration:'الهجرة',residency:'الإقامة',jobs:'الوظائف',housing:'السكن',education:'التعليم','cost-of-living':'تكلفة المعيشة','government-benefits':'مزايا حكومية','crime-safety':'الأمن والسلامة','local-news':'أخبار محلية',tourism:'السياحة',business:'الأعمال'}[aC] || 'أخبار';
+                return `<li><a href="/article/${a.arabic_slug||a.slug||a.id}" class="internal-link-item">
+                  <span class="internal-link-cat">${catLbl}</span>
+                  <span class="internal-link-title">${escHtml(a.title||a.arabic_title)}</span>
+                </a></li>`;
+              }).join('')}
+            </ul>`;
+          injectAfter.parentNode.insertBefore(internalBox, injectAfter.nextSibling);
+        }
+      }
+    }
+
+    // ===== 2. SIDEBAR related list =====
     const sidebar = document.getElementById('related-list');
     const relatedGrid = document.getElementById('related-articles-grid');
 
-    // Sidebar list
     if (sidebar) {
       if (!related.length) { sidebar.closest('.widget').style.display='none'; }
       else {
@@ -333,7 +361,7 @@ async function fetchRelated(cat, currentId) {
       }
     }
 
-    // Bottom related cards grid
+    // ===== 3. BOTTOM related cards grid =====
     if (relatedGrid && related.length) {
       const CAT_LABELS_LOCAL = {immigration:'الهجرة',residency:'الإقامة',jobs:'الوظائف',housing:'السكن',education:'التعليم','cost-of-living':'تكلفة المعيشة','government-benefits':'مزايا حكومية','crime-safety':'الأمن والسلامة','local-news':'أخبار محلية',tourism:'السياحة',business:'الأعمال'};
       relatedGrid.innerHTML = related.slice(0,3).map(a => {
