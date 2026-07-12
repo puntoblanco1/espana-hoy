@@ -709,9 +709,11 @@ app.get('/api/fix-all-images', (req, res) => {
 
     let fixed = 0;
     db.articles.forEach((a, idx) => {
-      const hasImage = (a.image && a.image.startsWith('http')) ||
-                       (a.image_url && a.image_url.startsWith('http')) ||
-                       (a.imageUrl && a.imageUrl.startsWith('http'));
+      const imgVal = a.image || a.image_url || a.imageUrl || '';
+      const hasImage = imgVal.startsWith('http') && imgVal.length > 30 &&
+                       (imgVal.includes('unsplash') || imgVal.includes('pexels') ||
+                        imgVal.includes('.jpg') || imgVal.includes('.jpeg') ||
+                        imgVal.includes('.png') || imgVal.includes('.webp'));
       if (!hasImage) {
         const pool = CAT_IMAGES[a.category] || DEFAULT_IMAGES;
         const img = pool[idx % pool.length];
@@ -877,7 +879,13 @@ setTimeout(() => {
     const DEFAULT_IMG = ['https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80','https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80','https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80'];
     let fixed = 0;
     db.articles.forEach((a, idx) => {
-      const hasImg = (a.image&&a.image.startsWith('http'))||(a.image_url&&a.image_url.startsWith('http'));
+      const imgVal = a.image || a.image_url || a.imageUrl || '';
+      // Must be a real photo URL — not empty, not emoji, not data URI, not too short
+      const hasImg = imgVal.startsWith('http') && imgVal.length > 30 &&
+                     (imgVal.includes('unsplash') || imgVal.includes('pexels') ||
+                      imgVal.includes('pixabay') || imgVal.includes('imgur') ||
+                      imgVal.includes('.jpg') || imgVal.includes('.jpeg') ||
+                      imgVal.includes('.png') || imgVal.includes('.webp'));
       if (!hasImg) {
         const pool = CAT_IMG[a.category] || DEFAULT_IMG;
         const img = pool[idx % pool.length];
