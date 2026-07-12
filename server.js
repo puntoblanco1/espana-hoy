@@ -207,6 +207,28 @@ app.get('/api/stats', (req, res) => {
 // ============================================================
 // WEBHOOK — n8n article webhook (backward compat)
 // ============================================================
+
+  // Image pool — 10 unique photos per category
+  const IMG_POOL = {
+    'immigration':['https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80','https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80','https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=800&q=80','https://images.unsplash.com/photo-1569025591030-b670e7d33ead?w=800&q=80','https://images.unsplash.com/photo-1574236170880-fba5d842a4c1?w=800&q=80','https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=800&q=80','https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=800&q=80','https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=800&q=80','https://images.unsplash.com/photo-1601628828688-632f38a5a7d0?w=800&q=80','https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800&q=80'],
+    'residency':['https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=800&q=80','https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80','https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80','https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80','https://images.unsplash.com/photo-1575505586569-646b2ca898fc?w=800&q=80','https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=800&q=80','https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800&q=80','https://images.unsplash.com/photo-1562564055-71e051d33c19?w=800&q=80','https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=800&q=80','https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80'],
+    'jobs':['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80','https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80','https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&q=80','https://images.unsplash.com/photo-1664575602554-2087b04935a5?w=800&q=80','https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80','https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=80','https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&q=80','https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&q=80','https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80','https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=800&q=80'],
+    'housing':['https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80','https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80','https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80','https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80','https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80','https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80','https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80','https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80','https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&q=80','https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&q=80'],
+    'education':['https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80','https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80','https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&q=80','https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80','https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80','https://images.unsplash.com/photo-1588072432836-e10032774350?w=800&q=80','https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&q=80','https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=800&q=80','https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80','https://images.unsplash.com/photo-1604134967494-8a9ed3adea0d?w=800&q=80'],
+    'cost-of-living':['https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80','https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=800&q=80','https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=800&q=80','https://images.unsplash.com/photo-1580048915913-4f8f5cb481c4?w=800&q=80','https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80','https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80','https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&q=80','https://images.unsplash.com/photo-1559526324-593bc073d938?w=800&q=80','https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=800&q=80','https://images.unsplash.com/photo-1621264448270-9ef00e88a935?w=800&q=80'],
+    'government-benefits':['https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80','https://images.unsplash.com/photo-1521791055366-0d553872952f?w=800&q=80','https://images.unsplash.com/photo-1532619675605-1ede6c2ed2b0?w=800&q=80','https://images.unsplash.com/photo-1573496799515-eebbb63814f2?w=800&q=80','https://images.unsplash.com/photo-1551836022-8b2858c9c69b?w=800&q=80','https://images.unsplash.com/photo-1559523161-0fc0d8b38a7a?w=800&q=80','https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=800&q=80','https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800&q=80','https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80','https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80'],
+    'crime-safety':['https://images.unsplash.com/photo-1616090478195-df3e5f3c7b02?w=800&q=80','https://images.unsplash.com/photo-1504813184591-01572f98c85f?w=800&q=80','https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=800&q=80','https://images.unsplash.com/photo-1453873531674-2151bcd01707?w=800&q=80','https://images.unsplash.com/photo-1521119989659-a83eee488004?w=800&q=80','https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800&q=80','https://images.unsplash.com/photo-1574115772986-b76b3f0e3b76?w=800&q=80','https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80','https://images.unsplash.com/photo-1609429019995-8c40f49535a5?w=800&q=80','https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80'],
+    'local-news':['https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&q=80','https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80','https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80','https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?w=800&q=80','https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&q=80','https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80','https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&q=80','https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&q=80','https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=800&q=80','https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80'],
+    'tourism':['https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80','https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80','https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&q=80','https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&q=80','https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&q=80','https://images.unsplash.com/photo-1561625116-5f8675632053?w=800&q=80','https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&q=80','https://images.unsplash.com/photo-1504019347908-b45f9b0b8dd5?w=800&q=80','https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&q=80','https://images.unsplash.com/photo-1596524430615-b46475ddff6e?w=800&q=80'],
+    'business':['https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?w=800&q=80','https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80','https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80','https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80','https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&q=80','https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&q=80','https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80','https://images.unsplash.com/photo-1664575600796-ffa828c5cb6e?w=800&q=80','https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80','https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80']
+  };
+  function pickImg(cat, id) {
+    const pool = IMG_POOL[cat] || IMG_POOL['local-news'];
+    let h = 0; const s = String(id||Date.now());
+    for (let i = 0; i < s.length; i++) h = (Math.imul(31,h) + s.charCodeAt(i)) | 0;
+    return pool[Math.abs(h) % pool.length];
+  }
+
 app.post('/webhook/article', (req, res) => {
   // Same as POST /api/articles but for n8n
   const db = getDB();
@@ -226,7 +248,7 @@ app.post('/webhook/article', (req, res) => {
     contentAr: body.contentAr || body.content || '',
     contentEs: body.contentEs || '',
     category: body.category || 'local-news',
-    image: body.image || body.imageUrl || '',
+    image: (body.image || body.imageUrl || '').startsWith('http') ? (body.image || body.imageUrl) : pickImg(body.category || 'local-news', body.id || Date.now()),
     tags: body.tags || [],
     faq: body.faq || [],
     status: 'published',
@@ -1001,28 +1023,15 @@ setTimeout(() => {
     };
 
     // Simple hash from article id/title for unique consistent assignment
-    function hashStr(str) {
-      let h = 0;
-      for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
-      return Math.abs(h);
-    }
-
     let fixed = 0;
-    const usedPerCat = {};
     db.articles.forEach((a) => {
       const imgVal = a.image || a.image_url || a.imageUrl || '';
       const isReal = imgVal.startsWith('http') && imgVal.length > 40 &&
-                     (imgVal.includes('unsplash') || imgVal.includes('.jpg') || imgVal.includes('.png'));
+                     (imgVal.includes('unsplash') || imgVal.includes('pexels') ||
+                      imgVal.includes('.jpg') || imgVal.includes('.png') || imgVal.includes('.webp'));
       if (!isReal) {
-        const cat = a.category || 'local-news';
-        const pool = CAT_IMG[cat] || CAT_IMG['local-news'];
-        // Use hash of article id+title so each article gets unique consistent image
-        const key = (a.id || '') + (a.title || '');
-        const idx = hashStr(key) % pool.length;
-        const img = pool[idx];
+        const img = pickImg(a.category || 'local-news', (a.id || '') + (a.title || ''));
         a.image = img; a.image_url = img; fixed++;
-        if (!usedPerCat[cat]) usedPerCat[cat] = new Set();
-        usedPerCat[cat].add(img);
       }
     });
     if (fixed > 0) {
