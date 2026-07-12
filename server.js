@@ -609,6 +609,123 @@ app.get('/api/seed-pillars', (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// FIX ALL MISSING IMAGES — varied per article
+app.get('/api/fix-all-images', (req, res) => {
+  if (req.query.key !== 'espana2025') return res.status(403).json({error:'forbidden'});
+  try {
+    const dbPath = fs.existsSync(DB_PATH) ? DB_PATH : DB_LOCAL;
+    const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    db.articles = db.articles || [];
+
+    // Multiple images per category for variety
+    const CAT_IMAGES = {
+      'immigration': [
+        'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80',
+        'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80',
+        'https://images.unsplash.com/photo-1530521954074-e64f6810b32d?w=800&q=80',
+        'https://images.unsplash.com/photo-1569025591030-b670e7d33ead?w=800&q=80',
+        'https://images.unsplash.com/photo-1574236170880-fba5d842a4c1?w=800&q=80'
+      ],
+      'residency': [
+        'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=800&q=80',
+        'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
+        'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80',
+        'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+        'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80'
+      ],
+      'jobs': [
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
+        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
+        'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&q=80',
+        'https://images.unsplash.com/photo-1664575602554-2087b04935a5?w=800&q=80',
+        'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80'
+      ],
+      'housing': [
+        'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+        'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80',
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80',
+        'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80',
+        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80'
+      ],
+      'education': [
+        'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
+        'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
+        'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&q=80',
+        'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80',
+        'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80'
+      ],
+      'cost-of-living': [
+        'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80',
+        'https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=800&q=80',
+        'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=800&q=80',
+        'https://images.unsplash.com/photo-1580048915913-4f8f5cb481c4?w=800&q=80',
+        'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80'
+      ],
+      'government-benefits': [
+        'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80',
+        'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80',
+        'https://images.unsplash.com/photo-1521791055366-0d553872952f?w=800&q=80',
+        'https://images.unsplash.com/photo-1532619675605-1ede6c2ed2b0?w=800&q=80',
+        'https://images.unsplash.com/photo-1573496799515-eebbb63814f2?w=800&q=80'
+      ],
+      'crime-safety': [
+        'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80',
+        'https://images.unsplash.com/photo-1616090478195-df3e5f3c7b02?w=800&q=80',
+        'https://images.unsplash.com/photo-1504813184591-01572f98c85f?w=800&q=80',
+        'https://images.unsplash.com/photo-1453873531674-2151bcd01707?w=800&q=80',
+        'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=800&q=80'
+      ],
+      'local-news': [
+        'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
+        'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&q=80',
+        'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&q=80',
+        'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?w=800&q=80',
+        'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80'
+      ],
+      'tourism': [
+        'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+        'https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&q=80',
+        'https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&q=80',
+        'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&q=80'
+      ],
+      'business': [
+        'https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?w=800&q=80',
+        'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80',
+        'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
+        'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80',
+        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&q=80'
+      ]
+    };
+
+    const DEFAULT_IMAGES = [
+      'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+      'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
+      'https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&q=80',
+      'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800&q=80'
+    ];
+
+    let fixed = 0;
+    db.articles.forEach((a, idx) => {
+      const hasImage = (a.image && a.image.startsWith('http')) ||
+                       (a.image_url && a.image_url.startsWith('http')) ||
+                       (a.imageUrl && a.imageUrl.startsWith('http'));
+      if (!hasImage) {
+        const pool = CAT_IMAGES[a.category] || DEFAULT_IMAGES;
+        const img = pool[idx % pool.length];
+        a.image = img;
+        a.image_url = img;
+        fixed++;
+      }
+    });
+
+    fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+    res.json({ ok: true, fixed, total: db.articles.length, withoutImage: db.articles.filter(a => !a.image).length });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
   res.status(404).sendFile(path.join(PUBLIC, '404.html'));
