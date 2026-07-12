@@ -114,6 +114,7 @@ async function loadArticle() {
     trackView(id);
     fetchRelated(article.category, id);
     renderUsefulLinks(article.category);
+    setTimeout(initReadingProgress, 100);
   } catch(e) {
     show404();
   }
@@ -207,6 +208,9 @@ function renderArticle(a) {
   const viewCount = (a.views || 0).toLocaleString('ar');
 
   document.getElementById('article-main').innerHTML = `
+    <!-- Reading Progress Bar -->
+    <div class="reading-progress" id="reading-progress"></div>
+
     <nav class="article-breadcrumb" aria-label="مسار التنقل">
       <a href="/">الرئيسية</a><span>/</span>
       <a href="/category/${cat}">${catLabel}</a><span>/</span>
@@ -214,14 +218,19 @@ function renderArticle(a) {
     </nav>
 
     <span class="article-cat-badge" style="font-size:12px;margin-bottom:12px;display:inline-block">${catIcon} ${catLabel}</span>
+
     <h1 class="article-headline">${escHtml(title)}</h1>
     ${summary ? `<p class="article-summary">${escHtml(summary)}</p>` : ''}
 
-    <div class="article-info-bar">
-      <span class="info-item"><i class="far fa-calendar"></i> ${formatDate(a.createdAt||a.publishedAt)}</span>
-      <span class="info-item"><i class="far fa-clock"></i> ${readTime(a)} دقائق قراءة</span>
-      <span class="info-item" id="view-counter"><i class="far fa-eye"></i> ${viewCount} مشاهدة</span>
-      <span class="info-item"><i class="fas fa-tag"></i> ${catLabel}</span>
+    <!-- Enhanced Meta Bar -->
+    <div class="article-meta-bar">
+      <span class="meta-author"><i class="fas fa-user-edit"></i> فريق تحرير إسبانيا اليوم</span>
+      <span class="meta-divider"></span>
+      <span class="meta-item"><i class="far fa-calendar-alt"></i> ${formatDate(a.createdAt||a.publishedAt)}</span>
+      <span class="meta-divider"></span>
+      <span class="meta-item"><i class="far fa-clock"></i> ${readTime(a)} دقائق قراءة</span>
+      <span class="meta-divider"></span>
+      <span class="meta-item" id="view-counter"><i class="far fa-eye"></i> ${viewCount} مشاهدة</span>
     </div>
 
     ${imgHtml}
@@ -231,6 +240,13 @@ function renderArticle(a) {
     <div class="ad-zone ad-banner" id="ad-article-top">
       <!-- adsense unit هنا -->
     </div>
+
+    <!-- Key Takeaways (for long pillar articles) -->
+    ${(a.tags && a.tags.length >= 4) ? `
+    <div class="key-takeaways">
+      <h3><i class="fas fa-list-check"></i> أبرز ما ستتعلمه في هذا المقال</h3>
+      <ul>${(a.tags||[]).slice(0,5).map(t=>`<li>${escHtml(t)}</li>`).join('')}</ul>
+    </div>` : ''}
 
     <div class="article-body">${formatContent(content)}</div>
 
