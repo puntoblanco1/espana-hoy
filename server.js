@@ -136,7 +136,7 @@ app.post('/api/articles', requireAuth, (req, res) => {
     contentAr: req.body.contentAr || req.body.content || '',
     contentEs: req.body.contentEs || '',
     category: req.body.category || 'local-news',
-    image: req.body.image || '',
+    image: (req.body.image||'').startsWith('http') ? req.body.image : pickImg(req.body.category||'local-news', req.body.id||Date.now()),
     tags: req.body.tags || [],
     faq: req.body.faq || [],
     status: req.body.status || 'published',
@@ -1029,15 +1029,10 @@ setTimeout(() => {
 
     // Simple hash from article id/title for unique consistent assignment
     let fixed = 0;
+    // Force unique image on EVERY article using hash — fixes duplicates too
     db.articles.forEach((a) => {
-      const imgVal = a.image || a.image_url || a.imageUrl || '';
-      const isReal = imgVal.startsWith('http') && imgVal.length > 40 &&
-                     (imgVal.includes('unsplash') || imgVal.includes('pexels') ||
-                      imgVal.includes('.jpg') || imgVal.includes('.png') || imgVal.includes('.webp'));
-      if (!isReal) {
-        const img = pickImg(a.category || 'local-news', (a.id || '') + (a.title || ''));
-        a.image = img; a.image_url = img; fixed++;
-      }
+      const img = pickImg(a.category || 'local-news', (a.id || '') + (a.title || ''));
+      if (a.image !== img) { a.image = img; a.image_url = img; fixed++; }
     });
     if (fixed > 0) {
       fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
