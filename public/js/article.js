@@ -157,30 +157,7 @@ function renderArticle(a) {
   if (!canonical) { canonical = document.createElement('link'); canonical.rel='canonical'; document.head.appendChild(canonical); }
   canonical.href = canonicalUrl;
 
-  // Structured data
-  const sd = {
-    "@context":"https://schema.org","@type":"NewsArticle",
-    "headline": title, "description": summary,
-    "datePublished": a.createdAt || a.publishedAt,
-    "dateModified": a.updatedAt || a.createdAt,
-    "author": {"@type":"Organization","name":"إسبانيا اليوم"},
-    "publisher": {"@type":"Organization","name":"إسبانيا اليوم",
-      "logo":{"@type":"ImageObject","url":`${window.location.origin}/logo.png`},
-      "url": window.location.origin},
-    "mainEntityOfPage": canonicalUrl,
-    "image": aImg || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800"
-  };
-  if (faq.length) {
-    sd["@type"] = ["NewsArticle","FAQPage"];
-    sd.mainEntity = faq.map(f=>({
-      "@type":"Question","name":f.q||f.question,
-      "acceptedAnswer":{"@type":"Answer","text":f.a||f.answer}
-    }));
-  }
-  const sdScript = document.createElement('script');
-  sdScript.type = 'application/ld+json';
-  sdScript.textContent = JSON.stringify(sd);
-  document.head.appendChild(sdScript);
+  // Structured data handled by injectSchema() — called separately in loadArticle()
 
   // Tags
   const tags = a.tags || [];
@@ -655,9 +632,9 @@ function injectSchema(a) {
       "url": "https://espaniaalyoum.com",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://espaniaalyoum.com/favicon.ico",
-        "width": 60,
-        "height": 60
+        "url": "https://espaniaalyoum.com/logo.jpg",
+        "width": 200,
+        "height": 200
       }
     },
     "inLanguage": "ar",
