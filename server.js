@@ -352,6 +352,7 @@ app.get('/privacy', (req, res) => res.sendFile(path.join(PUBLIC, 'privacy.html')
 app.get('/search', (req, res) => res.sendFile(path.join(PUBLIC, 'search.html')));
 app.get('/jobs', (req, res) => res.sendFile(path.join(PUBLIC, 'jobs.html')));
 app.get('/housing', (req, res) => res.sendFile(path.join(PUBLIC, 'housing.html')));
+app.get('/visa-calculator', (req, res) => res.sendFile(path.join(PUBLIC, 'visa-calculator.html')));
 app.get('/city/:citySlug', (req, res) => {
   const validCities = ['madrid','barcelona','valencia','sevilla','malaga'];
   const slug = req.params.citySlug;
@@ -383,7 +384,7 @@ app.get('/sitemap.xml', (req, res) => {
     '/category/housing','/category/education','/category/cost-of-living',
     '/category/government-benefits','/category/crime-safety',
     '/category/local-news','/category/tourism','/category/business',
-    '/city/madrid','/city/barcelona','/city/valencia','/city/sevilla','/city/malaga'
+    '/city/madrid','/city/barcelona','/city/valencia','/city/sevilla','/city/malaga','/visa-calculator'
   ].map(u => `
   <url>
     <loc>${baseUrl}${u}</loc>
