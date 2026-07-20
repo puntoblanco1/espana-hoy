@@ -79,14 +79,28 @@ app.get('/api/articles', (req, res) => {
 
   if (search) {
     const q = search.toLowerCase();
-    articles = articles.filter(a =>
-      (a.title||'').toLowerCase().includes(q) ||
-      (a.contentAr||a.content||'').toLowerCase().includes(q)
-    );
+    articles = articles
+      .map(a => {
+        const title = (a.title||'').toLowerCase();
+        const tags = (a.tags||[]).join(' ').toLowerCase();
+        const summary = (a.summary||'').toLowerCase();
+        const body = (a.contentAr||a.content||'').toLowerCase();
+        let score = 0;
+        if (title === q) score += 100;
+        else if (title.startsWith(q)) score += 50;
+        else if (title.includes(q)) score += 30;
+        if (tags.includes(q)) score += 15;
+        if (summary.includes(q)) score += 8;
+        if (body.includes(q)) score += 2;
+        return { article: a, score };
+      })
+      .filter(x => x.score > 0)
+      .sort((x, y) => y.score - x.score || new Date(y.article.createdAt||y.article.publishedAt||0) - new Date(x.article.createdAt||x.article.publishedAt||0))
+      .map(x => x.article);
+  } else {
+    // No search query — sort newest first
+    articles.sort((a, b) => new Date(b.createdAt||b.publishedAt||0) - new Date(a.createdAt||a.publishedAt||0));
   }
-
-  // Sort newest first
-  articles.sort((a, b) => new Date(b.createdAt||b.publishedAt||0) - new Date(a.createdAt||a.publishedAt||0));
 
   const total = articles.length;
   const paginated = articles.slice(Number(offset), Number(offset) + Number(limit));
