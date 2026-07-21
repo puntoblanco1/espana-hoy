@@ -110,6 +110,14 @@ function updateCatUI() {
 
 async function fetchCategoryArticles() {
   try {
+    // Reuse server-rendered data if available — avoids duplicate fetch
+    if (window.__SSR_CATEGORY__ && window.__SSR_CATEGORY__.category === currentCat) {
+      articles = window.__SSR_CATEGORY__.articles || [];
+      displayedCount = Math.min(9, articles.length); // first 9 already rendered server-side
+      const btn = document.getElementById('load-more');
+      if (btn) btn.style.display = articles.slice(displayedCount).length > 0 ? 'inline-flex' : 'none';
+      return;
+    }
     const res = await fetch(`/api/articles?category=${currentCat}&limit=60&status=published`);
     const data = await res.json();
     articles = data.articles || data || [];
