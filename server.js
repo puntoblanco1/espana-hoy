@@ -362,9 +362,112 @@ app.get('/city/:citySlug', (req, res) => {
 });
 app.get('/cities', (req, res) => res.redirect('/'));
 
-// Category routes — serve category.html for all /category/* paths
+// ============================================================
+// SERVER-SIDE RENDERING FOR CATEGORY PAGES
+// ============================================================
+const SSR_CAT_DESC = {
+  immigration:'آخر أخبار وتحديثات قوانين الهجرة إلى إسبانيا',
+  residency:'كل ما يخص بطاقات الإقامة والتجديد والجنسية',
+  jobs:'فرص العمل والرواتب وحقوق العمال في إسبانيا',
+  housing:'أسعار الإيجار والعقارات والسكن في إسبانيا',
+  education:'التعليم والمدارس والجامعات والمنح الدراسية',
+  'cost-of-living':'تكلفة المعيشة والأسعار في إسبانيا',
+  'government-benefits':'الإعانات والمزايا الحكومية للمقيمين',
+  'crime-safety':'أخبار الأمن والسلامة ونصائح الوقاية',
+  'local-news':'أخبار المدن والمناطق الإسبانية المختلفة',
+  tourism:'السياحة والأماكن والتجارب في إسبانيا',
+  business:'ريادة الأعمال والاستثمار والأعمال التجارية'
+};
+function ssrGetSlug(a) {
+  const s = a.arabic_slug;
+  if (s && s !== 'MISSING' && s.length > 3) return s;
+  return a.slug || a.id;
+}
+
+// Category routes — serve category.html for all /category/* paths, server-rendered
 app.get('/category/:cat', (req, res) => {
-  res.sendFile(path.join(PUBLIC, 'category.html'));
+  try {
+    const catSlug = req.params.cat;
+    const db = getDB();
+    const templatePath = path.join(PUBLIC, 'category.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    if (!SSR_CAT_LABELS[catSlug]) {
+      return res.send(html); // unknown category — let client JS handle empty state
+    }
+
+    const catLabel = SSR_CAT_LABELS[catSlug];
+    const catIcon = SSR_CAT_ICONS[catSlug] || '📰';
+    const catDesc = SSR_CAT_DESC[catSlug] || 'أخبار إسبانيا بالعربية';
+    const baseUrl = process.env.SITE_URL || 'https://www.espaniaalyoum.com';
+
+    const allArticles = (db.articles || []).filter(a =>
+      (a.category === catSlug) && (a.status === 'published' || !a.status)
+    );
+    const pageArticles = allArticles.slice(0, 9);
+
+    // ---- Meta tags ----
+    html = html.replace(
+      /<title id="page-title">.*?<\/title>/,
+      `<title id="page-title">${catLabel} — أخبار وأدلة شاملة | إسبانيا اليوم</title>`
+    );
+    html = html.replace(
+      /<meta name="description" id="page-desc" content="[^"]*">/,
+      `<meta name="description" id="page-desc" content="${catDesc}. أحدث ${allArticles.length} مقال ودليل شامل في قسم ${catLabel} على إسبانيا اليوم.">`
+    );
+    html = html.replace('</head>', `  <link rel="canonical" href="${baseUrl}/category/${catSlug}">\n</head>`);
+
+    // ---- Category header ----
+    html = html.replace('<span id="cat-breadcrumb">التصنيف</span>', `<span id="cat-breadcrumb">${catLabel}</span>`);
+    html = html.replace('<div style="font-size:40px" id="cat-icon">📰</div>', `<div style="font-size:40px" id="cat-icon">${catIcon}</div>`);
+    html = html.replace('<h1 style="font-size:28px;font-weight:900;margin-bottom:4px" id="cat-title">التصنيف</h1>', `<h1 style="font-size:28px;font-weight:900;margin-bottom:4px" id="cat-title">${catLabel}</h1>`);
+    html = html.replace('<p style="font-size:14px;opacity:0.8" id="cat-desc">جاري التحميل...</p>', `<p style="font-size:14px;opacity:0.8" id="cat-desc">${catDesc}</p>`);
+
+    // ---- Render real article cards ----
+    const cardsHtml = pageArticles.map(a => {
+      const aCat = a.category || catSlug;
+      const icon = SSR_CAT_ICONS[aCat] || '📰';
+      const img = ssrImgUrl(a);
+      const imgHtml = img
+        ? `<img class="article-card-thumb" src="${img}" alt="${ssrEscHtml(a.title)}" loading="lazy">`
+        : `<div class="article-card-thumb-placeholder">${icon}</div>`;
+      const slug = ssrGetSlug(a);
+      return `<a class="article-card" href="/article/${slug}">
+        ${imgHtml}
+        <div class="article-card-body">
+          <span class="article-cat-badge">${SSR_CAT_LABELS[aCat]||'أخبار'}</span>
+          <h2 class="article-card-title">${ssrEscHtml(a.title)}</h2>
+          <div class="article-card-meta">
+            <span>${ssrFormatDate(a.createdAt||a.publishedAt)}</span>
+            <span class="article-read-time"><i class="far fa-clock"></i> ${ssrReadTime(a)} دقائق</span>
+          </div>
+        </div>
+      </a>`;
+    }).join('');
+
+    const gridHtml = pageArticles.length > 0 ? cardsHtml : `
+      <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-light)">
+        <div style="font-size:48px;margin-bottom:16px">${catIcon}</div>
+        <p style="font-size:16px">لا توجد مقالات في هذا التصنيف بعد</p>
+        <a href="/" style="display:inline-block;margin-top:16px;background:var(--primary);color:white;padding:10px 24px;border-radius:40px;font-weight:700;text-decoration:none">العودة للرئيسية</a>
+      </div>`;
+
+    html = html.replace(
+      /(<div id="cat-article-grid" class="article-grid">)[\s\S]*?(<\/div>\s*<div class="load-more-wrap">)/,
+      `$1${gridHtml}$2`
+    );
+
+    // Embed data for client JS reuse (avoids duplicate fetch + enables load-more pagination)
+    html = html.replace(
+      '<script src="/js/category.js"></script>',
+      `<script>window.__SSR_CATEGORY__ = ${JSON.stringify({ category: catSlug, articles: allArticles })};</script>\n<script src="/js/category.js"></script>`
+    );
+
+    res.send(html);
+  } catch (e) {
+    console.error('SSR category error:', e.message);
+    res.sendFile(path.join(PUBLIC, 'category.html'));
+  }
 });
 
 // Slug-based article routes /article/:slug — serve HTML directly (SEO-friendly)
