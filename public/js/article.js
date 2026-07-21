@@ -106,11 +106,19 @@ async function loadArticle() {
   initReadingProgress();
 
   try {
-    const res = await fetch(`/api/articles/${id}`);
-    if (!res.ok) throw new Error('not found');
-    const article = await res.json();
-    renderArticle(article);
-    injectSchema(article);
+    // Reuse server-rendered article data if available — avoids duplicate fetch,
+    // content is already visible in the DOM (server-side rendered for SEO/AdSense)
+    let article = window.__SSR_ARTICLE__;
+    if (!article) {
+      const res = await fetch(`/api/articles/${id}`);
+      if (!res.ok) throw new Error('not found');
+      article = await res.json();
+      renderArticle(article);
+      injectSchema(article);
+    } else {
+      // Content already rendered server-side — just wire up dynamic bits
+      injectSchema(article);
+    }
     trackView(id);
     fetchRelated(article.category, id);
     renderUsefulLinks(article.category);
