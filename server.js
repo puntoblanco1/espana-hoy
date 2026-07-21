@@ -368,8 +368,241 @@ app.get('/category/:cat', (req, res) => {
 });
 
 // Slug-based article routes /article/:slug — serve HTML directly (SEO-friendly)
+// ============================================================
+// SERVER-SIDE RENDERING HELPERS FOR ARTICLE PAGES
+// ============================================================
+const SSR_CAT_LABELS = {
+  immigration:'الهجرة', residency:'الإقامة', jobs:'الوظائف', housing:'السكن',
+  education:'التعليم', 'cost-of-living':'تكلفة المعيشة',
+  'government-benefits':'مزايا حكومية', 'crime-safety':'الأمن والسلامة',
+  'local-news':'أخبار محلية', tourism:'السياحة', business:'الأعمال'
+};
+const SSR_CAT_ICONS = {
+  immigration:'✈️', residency:'📋', jobs:'💼', housing:'🏠',
+  education:'📚', 'cost-of-living':'💰', 'government-benefits':'🏛️',
+  'crime-safety':'🛡️', 'local-news':'📰', tourism:'🗺️', business:'💹'
+};
+function ssrEscHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function ssrFormatDate(ds) {
+  if (!ds) return '';
+  try {
+    const d = new Date(ds);
+    const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  } catch { return ''; }
+}
+function ssrReadTime(a) {
+  const t = a.contentAr || a.content || a.arabic_content || '';
+  return Math.max(2, Math.ceil(t.split(/\s+/).length / 200));
+}
+function ssrImgUrl(a) { return a.image || a.image_url || a.imageUrl || ''; }
+
+function findArticleBySlug(db, slug) {
+  const list = db.articles || [];
+  return list.find(a => a.arabic_slug === slug || a.slug === slug || a.id === slug);
+}
+
 app.get('/article/:slug', (req, res) => {
-  res.sendFile(path.join(PUBLIC, 'article.html'));
+  try {
+    const db = getDB();
+    const article = findArticleBySlug(db, req.params.slug);
+    const templatePath = path.join(PUBLIC, 'article.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    if (!article) {
+      // No matching article — serve template as-is (client JS will show 404)
+      return res.send(html);
+    }
+
+    const baseUrl = process.env.SITE_URL || 'https://www.espaniaalyoum.com';
+    const cat = article.category || 'local-news';
+    const catLabel = SSR_CAT_LABELS[cat] || 'أخبار';
+    const catIcon = SSR_CAT_ICONS[cat] || '📰';
+    const title = article.title || article.arabic_title || '';
+    const summary = article.summary || article.arabic_summary || article.excerpt || '';
+    const bodyContent = article.contentAr || article.content || article.arabic_content || '';
+    const faq = article.faq || [];
+    const slug = article.arabic_slug || article.slug || article.id;
+    const canonicalUrl = `${baseUrl}/article/${slug}`;
+    const img = ssrImgUrl(article);
+    const viewCount = (article.views || 0).toLocaleString('ar');
+    const tags = article.tags || [];
+
+    // ---- 1. Replace <head> meta tags ----
+    html = html.replace(
+      /<title id="page-title">.*?<\/title>/,
+      `<title id="page-title">${ssrEscHtml(title)} | إسبانيا اليوم</title>`
+    );
+    html = html.replace(
+      /<meta name="description" id="page-desc" content="">/,
+      `<meta name="description" id="page-desc" content="${ssrEscHtml(summary)}">`
+    );
+    html = html.replace(
+      /<meta property="og:title" id="og-title" content="">/,
+      `<meta property="og:title" id="og-title" content="${ssrEscHtml(title)}">`
+    );
+    html = html.replace(
+      /<meta property="og:description" id="og-desc" content="">/,
+      `<meta property="og:description" id="og-desc" content="${ssrEscHtml(summary)}">`
+    );
+    html = html.replace(
+      /<meta property="og:image" id="og-img" content="">/,
+      `<meta property="og:image" id="og-img" content="${ssrEscHtml(img)}">`
+    );
+    html = html.replace(
+      /<meta property="og:url" id="og-url" content="">/,
+      `<meta property="og:url" id="og-url" content="${canonicalUrl}">`
+    );
+    // Canonical link — insert before </head> if not already present via JS-only
+    html = html.replace('</head>', `  <link rel="canonical" href="${canonicalUrl}">\n</head>`);
+
+    // ---- 2. Inject Schema.org JSON-LD directly ----
+    const newsArticleSchema = {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": title,
+      "description": summary,
+      "image": img ? [img] : undefined,
+      "datePublished": article.createdAt || article.publishedAt,
+      "dateModified": article.updatedAt || article.createdAt || article.publishedAt,
+      "author": { "@type": "Organization", "name": "إسبانيا اليوم" },
+      "publisher": {
+        "@type": "Organization",
+        "name": "إسبانيا اليوم",
+        "logo": { "@type": "ImageObject", "url": `${baseUrl}/logo.jpg`, "width": 200, "height": 200 }
+      },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl }
+    };
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": baseUrl },
+        { "@type": "ListItem", "position": 2, "name": catLabel, "item": `${baseUrl}/category/${cat}` },
+        { "@type": "ListItem", "position": 3, "name": title, "item": canonicalUrl }
+      ]
+    };
+    html = html.replace(
+      '<script type="application/ld+json" id="schema-article"></script>',
+      `<script type="application/ld+json" id="schema-article">${JSON.stringify(newsArticleSchema)}</script>`
+    );
+    html = html.replace(
+      '<script type="application/ld+json" id="schema-breadcrumb"></script>',
+      `<script type="application/ld+json" id="schema-breadcrumb">${JSON.stringify(breadcrumbSchema)}</script>`
+    );
+    if (faq.length) {
+      const faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faq.map(f => ({
+          "@type": "Question",
+          "name": f.q || f.question || '',
+          "acceptedAnswer": { "@type": "Answer", "text": f.a || f.answer || '' }
+        }))
+      };
+      html = html.replace(
+        '<script type="application/ld+json" id="schema-faq"></script>',
+        `<script type="application/ld+json" id="schema-faq">${JSON.stringify(faqSchema)}</script>`
+      );
+    }
+
+    // ---- 3. Build full article body HTML (replaces skeleton) ----
+    const imgHtml = img
+      ? `<img class="article-hero-img" src="${img}" alt="${ssrEscHtml(title)}" loading="eager" fetchpriority="high" onerror="this.style.display='none'">`
+      : '';
+    const tagsHtml = tags.length
+      ? `<div class="tags-wrap">${tags.map(t=>`<a href="/search?q=${encodeURIComponent(t)}" class="tag">#${ssrEscHtml(t)}</a>`).join('')}</div>` : '';
+    const faqHtml = faq.length ? `
+      <div class="faq-section">
+        <h2>أسئلة شائعة</h2>
+        ${faq.map((f,i)=>{
+          const q = f.q || f.question || '';
+          const ans = f.a || f.answer || '';
+          return `<div class="faq-item" id="faq-${i}">
+            <div class="faq-q" onclick="toggleFaq(${i})">${ssrEscHtml(q)}<span class="arrow">▾</span></div>
+            <div class="faq-a">${ssrEscHtml(ans)}</div>
+          </div>`;
+        }).join('')}
+      </div>` : '';
+    const keyTakeawaysHtml = (tags.length >= 4) ? `
+      <div class="key-takeaways">
+        <h3><i class="fas fa-list-check"></i> أبرز ما ستتعلمه في هذا المقال</h3>
+        <ul>${tags.slice(0,5).map(t=>`<li>${ssrEscHtml(t)}</li>`).join('')}</ul>
+      </div>` : '';
+
+    const articleMainHtml = `
+    <div class="reading-progress" id="reading-progress"></div>
+    <nav class="article-breadcrumb" aria-label="مسار التنقل">
+      <a href="/">الرئيسية</a><span>/</span>
+      <a href="/category/${cat}">${catLabel}</a><span>/</span>
+      <span>${ssrEscHtml(title.substring(0,50))}${title.length>50?'...':''}</span>
+    </nav>
+    <span class="article-cat-badge" style="font-size:12px;margin-bottom:12px;display:inline-block">${catIcon} ${catLabel}</span>
+    <h1 class="article-headline">${ssrEscHtml(title)}</h1>
+    ${summary ? `<p class="article-summary">${ssrEscHtml(summary)}</p>` : ''}
+    <div class="article-meta-bar">
+      <span class="meta-author"><i class="fas fa-user-edit"></i> فريق تحرير إسبانيا اليوم</span>
+      <span class="meta-divider"></span>
+      <span class="meta-item"><i class="far fa-calendar-alt"></i> ${ssrFormatDate(article.createdAt||article.publishedAt)}</span>
+      <span class="meta-divider"></span>
+      <span class="meta-item"><i class="far fa-clock"></i> ${ssrReadTime(article)} دقائق قراءة</span>
+      <span class="meta-divider"></span>
+      <span class="meta-item" id="view-counter"><i class="far fa-eye"></i> ${viewCount} مشاهدة</span>
+    </div>
+    ${imgHtml}
+    <div class="ad-label">إعلان</div>
+    <div class="ad-zone ad-banner" id="ad-article-top"></div>
+    ${keyTakeawaysHtml}
+    <div class="article-body">${bodyContent}</div>
+    ${tagsHtml}
+    <div class="share-bar">
+      <span>شارك المقال:</span>
+      <button class="share-btn share-wa" onclick="share('whatsapp')"><i class="fab fa-whatsapp"></i> واتساب</button>
+      <button class="share-btn share-fb" onclick="share('facebook')"><i class="fab fa-facebook-f"></i> فيسبوك</button>
+      <button class="share-btn share-tw" onclick="share('twitter')"><i class="fab fa-x-twitter"></i> X</button>
+      <button class="share-btn share-tg" onclick="share('telegram')"><i class="fab fa-telegram"></i> تيليجرام</button>
+      <button class="share-btn share-cp" onclick="copyLink()"><i class="far fa-copy"></i> نسخ</button>
+    </div>
+    <div class="share-cta-block">
+      <div class="share-cta-icon">📢</div>
+      <div class="share-cta-text">
+        <strong>هل أفادك هذا المقال؟</strong>
+        <p>شاركه مع العرب في إسبانيا — ممكن يساعد شخصاً يبحث عن هذه المعلومة الآن</p>
+      </div>
+      <div class="share-cta-btns">
+        <button class="share-cta-btn wa" onclick="share('whatsapp')"><i class="fab fa-whatsapp"></i> شارك على واتساب</button>
+        <button class="share-cta-btn fb" onclick="share('facebook')"><i class="fab fa-facebook-f"></i> شارك على فيسبوك</button>
+        <button class="share-cta-btn tg" onclick="share('telegram')"><i class="fab fa-telegram"></i> تيليجرام</button>
+        <button class="share-cta-btn cp" onclick="copyLink()"><i class="far fa-copy"></i> نسخ الرابط</button>
+      </div>
+    </div>
+    <div class="ad-label" style="margin-top:24px">إعلان</div>
+    <div class="ad-zone ad-banner" id="ad-article-mid"></div>
+    ${faqHtml}
+    <div class="ad-label" style="margin-top:24px">إعلان</div>
+    <div class="ad-zone ad-banner" id="ad-article-bottom"></div>
+    `;
+
+    // Replace the skeleton <main id="article-main">...</main> content
+    html = html.replace(
+      /(<main id="article-main">)[\s\S]*?(<\/main>)/,
+      `$1${articleMainHtml}$2`
+    );
+
+    // Embed article data as JSON for client JS to reuse without re-fetching
+    html = html.replace(
+      '<script src="/js/article.js"></script>',
+      `<script>window.__SSR_ARTICLE__ = ${JSON.stringify(article)};</script>\n<script src="/js/article.js"></script>`
+    );
+
+    res.send(html);
+  } catch (e) {
+    console.error('SSR article error:', e.message);
+    res.sendFile(path.join(PUBLIC, 'article.html'));
+  }
 });
 
 // ============================================================
