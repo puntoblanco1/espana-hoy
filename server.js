@@ -486,8 +486,52 @@ app.get('/about', (req, res) => res.sendFile(path.join(PUBLIC, 'about.html')));
 app.get('/contact', (req, res) => res.sendFile(path.join(PUBLIC, 'contact.html')));
 app.get('/privacy', (req, res) => res.sendFile(path.join(PUBLIC, 'privacy.html')));
 app.get('/search', (req, res) => res.sendFile(path.join(PUBLIC, 'search.html')));
-app.get('/jobs', (req, res) => res.sendFile(path.join(PUBLIC, 'jobs.html')));
-app.get('/housing', (req, res) => res.sendFile(path.join(PUBLIC, 'housing.html')));
+function ssrStripCards(articles, cat, limit) {
+  const filtered = articles.filter(a => a.category === cat).slice(0, limit);
+  return filtered.map(a => `
+      <a href="/article/${ssrGetSlug(a)}" class="strip-card">
+        <div class="strip-card-title">${ssrEscHtml(a.title)}</div>
+        <div class="strip-card-meta"><i class="far fa-clock"></i> ${ssrFormatDate(a.createdAt||a.publishedAt)}</div>
+      </a>`).join('');
+}
+
+app.get('/jobs', (req, res) => {
+  try {
+    const db = getDB();
+    let html = fs.readFileSync(path.join(PUBLIC, 'jobs.html'), 'utf8');
+    const arts = (db.articles || []).filter(a => a.status === 'published' || !a.status);
+    const cardsHtml = ssrStripCards(arts, 'jobs', 3);
+    if (cardsHtml) {
+      html = html.replace(
+        /(<div class="articles-strip" id="jobs-articles">)[\s\S]*?(<\/div>\s*<\/div>\s*<!--)/,
+        `$1${cardsHtml}\n    $2`
+      );
+    }
+    res.send(html);
+  } catch (e) {
+    console.error('SSR jobs error:', e.message);
+    res.sendFile(path.join(PUBLIC, 'jobs.html'));
+  }
+});
+
+app.get('/housing', (req, res) => {
+  try {
+    const db = getDB();
+    let html = fs.readFileSync(path.join(PUBLIC, 'housing.html'), 'utf8');
+    const arts = (db.articles || []).filter(a => a.status === 'published' || !a.status);
+    const cardsHtml = ssrStripCards(arts, 'housing', 3);
+    if (cardsHtml) {
+      html = html.replace(
+        /(<div class="articles-strip" id="housing-articles">)[\s\S]*?(<\/div>\s*<\/div>\s*<!--)/,
+        `$1${cardsHtml}\n    $2`
+      );
+    }
+    res.send(html);
+  } catch (e) {
+    console.error('SSR housing error:', e.message);
+    res.sendFile(path.join(PUBLIC, 'housing.html'));
+  }
+});
 app.get('/visa-calculator', (req, res) => res.sendFile(path.join(PUBLIC, 'visa-calculator.html')));
 app.get('/salary-calculator', (req, res) => res.sendFile(path.join(PUBLIC, 'salary-calculator.html')));
 app.get('/city/:citySlug', (req, res) => {
