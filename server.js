@@ -344,7 +344,143 @@ app.get('/api/fix-slugs', (req, res) => {
 // ============================================================
 const PUBLIC = path.join(__dirname, 'public');
 
-app.get('/', (req, res) => res.sendFile(path.join(PUBLIC, 'index.html')));
+// ============================================================
+// SERVER-SIDE RENDERING FOR HOMEPAGE
+// ============================================================
+app.get('/', (req, res) => {
+  try {
+    const db = getDB();
+    const templatePath = path.join(PUBLIC, 'index.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    const allArts = (db.articles || []).filter(a => a.status === 'published' || !a.status);
+    if (allArts.length === 0) return res.send(html);
+
+    const baseUrl = process.env.SITE_URL || 'https://www.espaniaalyoum.com';
+
+    // ---- Hero (article 1) + side cards (2-3) ----
+    const hero = allArts[0];
+    const heroCat = hero.category || 'local-news';
+    const heroLabel = SSR_CAT_LABELS[heroCat] || 'أخبار';
+    const heroSlug = ssrGetSlug(hero);
+    const heroImg = ssrImgUrl(hero);
+    const heroTitle = hero.title || '';
+    const heroImageHtml = heroImg
+      ? `<img class="hero-img" src="${heroImg}" alt="${ssrEscHtml(heroTitle)}" loading="eager" fetchpriority="high" onerror="this.style.display='none'">`
+      : `<div class="hero-placeholder"></div>`;
+    const heroHtml = `
+      ${heroImageHtml}
+      <div class="hero-content">
+        <div class="hero-cat">${heroLabel}</div>
+        <h1 class="hero-title">${ssrEscHtml(heroTitle)}</h1>
+        <div class="hero-meta">
+          <span><i class="far fa-clock"></i> ${ssrFormatDate(hero.createdAt||hero.publishedAt)}</span>
+          <span><i class="far fa-eye"></i> ${(hero.views||0).toLocaleString('ar')} مشاهدة</span>
+          <span><i class="far fa-clock"></i> ${ssrReadTime(hero)} دقائق</span>
+        </div>
+      </div>`;
+    html = html.replace(
+      /(<div class="hero-card" id="hero-card")([^>]*)(>)[\s\S]*?(<\/div>\s*<div class="side-cards")/,
+      `$1$2 onclick="window.location.href='/article/${heroSlug}'" style="cursor:pointer"$3${heroHtml}$4`
+    );
+
+    const sideArts = allArts.slice(1, 3);
+    const sideCardsHtml = sideArts.map(a => {
+      const c = a.category || 'local-news';
+      const aImg = ssrImgUrl(a);
+      const imgHtml = aImg
+        ? `<img class="side-card-img" src="${aImg}" alt="${ssrEscHtml(a.title)}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="side-card-img-placeholder">${SSR_CAT_ICONS[c]||'📰'}</div>`;
+      return `<a href="/article/${ssrGetSlug(a)}" class="side-card">
+        ${imgHtml}
+        <div class="side-card-body">
+          <div class="side-card-cat">${SSR_CAT_LABELS[c]||'أخبار'}</div>
+          <div class="side-card-title">${ssrEscHtml(a.title)}</div>
+          <div class="side-card-date">
+            <span>${ssrFormatDate(a.createdAt||a.publishedAt)}</span>
+            <span><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')}</span>
+          </div>
+        </div>
+      </a>`;
+    }).join('');
+    html = html.replace(
+      /(<div class="side-cards" id="side-cards">)[\s\S]*?(<\/div>\s*<\/div>\s*<\/div>\s*<\/section>)/,
+      `$1${sideCardsHtml}$2`
+    );
+
+    // ---- Article grid (from article 4 onward, first 9) ----
+    const gridArts = allArts.slice(3, 12);
+    const gridCardsHtml = gridArts.map(a => {
+      const cat = a.category || 'local-news';
+      const catLabel = SSR_CAT_LABELS[cat] || 'أخبار';
+      const aImg = ssrImgUrl(a);
+      const imgHtml = aImg
+        ? `<img class="article-card-thumb" src="${aImg}" alt="${ssrEscHtml(a.title)}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="article-card-thumb-placeholder">${SSR_CAT_ICONS[cat]||'📰'}</div>`;
+      const summary = (a.summary || '').substring(0, 100);
+      return `<a href="/article/${ssrGetSlug(a)}" class="article-card">
+        ${imgHtml}
+        <div class="article-card-body">
+          <span class="article-cat-badge">${catLabel}</span>
+          <h2 class="article-card-title">${ssrEscHtml(a.title)}</h2>
+          <p class="article-card-summary">${ssrEscHtml(summary)}...</p>
+          <div class="article-card-meta">
+            <span>${ssrFormatDate(a.createdAt||a.publishedAt)}</span>
+            <span class="article-read-time"><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')} · <i class="far fa-clock"></i> ${ssrReadTime(a)} د</span>
+          </div>
+        </div>
+      </a>`;
+    }).join('');
+    html = html.replace(
+      /(<div class="article-grid" id="article-grid">)[\s\S]*?(<\/div>\s*<!-- AD ZONE MID -->)/,
+      `$1${gridCardsHtml}$2`
+    );
+
+    // ---- Most read (top 5 by views) ----
+    const topArts = [...allArts].sort((a,b) => (b.views||0) - (a.views||0)).slice(0, 5);
+    const mostReadHtml = topArts.map((a, i) => `
+      <a href="/article/${ssrGetSlug(a)}" class="most-read-item">
+        <div class="most-read-num">${i+1}</div>
+        <div>
+          <div class="most-read-title">${ssrEscHtml(a.title)}</div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:3px"><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')} مشاهدة</div>
+        </div>
+      </a>`).join('');
+    html = html.replace(
+      /(<div class="most-read-list" id="most-read-list">)[\s\S]*?(<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<!-- AD RECTANGLE -->)/,
+      `$1${mostReadHtml}$2`
+    );
+
+    // ---- Ticker ----
+    const tickerArts = allArts.slice(0, 8);
+    const tickerItems = [...tickerArts, ...tickerArts];
+    const tickerHtml = tickerItems.map(a =>
+      `<span class="ticker-item" onclick="window.location.href='/article/${ssrGetSlug(a)}'" style="cursor:pointer">${ssrEscHtml(a.title)}</span>`
+    ).join('');
+    html = html.replace(
+      '<span class="ticker-item">جاري تحميل آخر الأخبار...</span>',
+      tickerHtml
+    );
+
+    // ---- Category counts ----
+    const counts = {};
+    allArts.forEach(a => { const c = a.category || 'local-news'; counts[c] = (counts[c]||0) + 1; });
+    Object.entries(counts).forEach(([cat, count]) => {
+      html = html.replace(`<span class="cat-badge" id="cnt-${cat}">-</span>`, `<span class="cat-badge" id="cnt-${cat}">${count}</span>`);
+    });
+
+    // Embed data for client JS reuse
+    html = html.replace(
+      '<script src="/js/app.js"></script>',
+      `<script>window.__SSR_HOME_ARTICLES__ = ${JSON.stringify(allArts.slice(0, 100))};</script>\n<script src="/js/app.js"></script>`
+    );
+
+    res.send(html);
+  } catch (e) {
+    console.error('SSR homepage error:', e.message);
+    res.sendFile(path.join(PUBLIC, 'index.html'));
+  }
+});
 app.get('/article', (req, res) => res.sendFile(path.join(PUBLIC, 'article.html')));
 app.get('/about', (req, res) => res.sendFile(path.join(PUBLIC, 'about.html')));
 app.get('/contact', (req, res) => res.sendFile(path.join(PUBLIC, 'contact.html')));
