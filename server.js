@@ -831,10 +831,52 @@ app.get('/article/:slug', (req, res) => {
       `$1${articleMainHtml}$2`
     );
 
+    // ---- 4. Related articles (sidebar list + bottom grid) — replaces skeleton ----
+    const dbArticlesForRelated = (db.articles || []).filter(a => a.status === 'published' || !a.status);
+    let related = dbArticlesForRelated.filter(a => a.category === cat && a.id !== article.id).slice(0, 4);
+    if (related.length < 3) {
+      const others = dbArticlesForRelated.filter(a => a.category !== cat && a.id !== article.id).slice(0, 4 - related.length);
+      related = [...related, ...others];
+    }
+    if (related.length) {
+      const relatedListHtml = related.map((a, i) => `
+        <a href="/article/${ssrGetSlug(a)}" class="most-read-item">
+          <div class="most-read-num">${i+1}</div>
+          <div>
+            <div class="most-read-title">${ssrEscHtml(a.title)}</div>
+            <div style="font-size:11px;color:var(--text-light);margin-top:3px"><i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')}</div>
+          </div>
+        </a>`).join('');
+      html = html.replace(
+        /(<div class="most-read-list" id="related-list">)[\s\S]*?(<\/div>\s*<\/div>\s*<\/div>\s*<!-- AD SIDEBAR -->)/,
+        `$1${relatedListHtml}$2`
+      );
+
+      const relatedGridHtml = related.slice(0,3).map(a => {
+        const aC = a.category || 'local-news';
+        const aImg = ssrImgUrl(a);
+        const imgHtml = aImg
+          ? `<img src="${aImg}" alt="${ssrEscHtml(a.title)}" class="related-card-img" loading="lazy" onerror="this.style.display='none'">`
+          : `<div class="related-card-img-placeholder">${SSR_CAT_ICONS[aC]||'📰'}</div>`;
+        return `<a href="/article/${ssrGetSlug(a)}" class="related-card">
+          <div class="related-card-media">${imgHtml}</div>
+          <div class="related-card-body">
+            <span class="article-cat-badge" style="font-size:11px">${SSR_CAT_LABELS[aC]||'أخبار'}</span>
+            <div class="related-card-title">${ssrEscHtml(a.title)}</div>
+            <div class="related-card-meta"><i class="far fa-clock"></i> ${ssrReadTime(a)} دقائق · <i class="far fa-eye"></i> ${(a.views||0).toLocaleString('ar')}</div>
+          </div>
+        </a>`;
+      }).join('');
+      html = html.replace(
+        /(<div class="related-grid" id="related-articles-grid">)[\s\S]*?(<\/div>\s*<\/div>\s*<\/section>)/,
+        `$1${relatedGridHtml}$2`
+      );
+    }
+
     // Embed article data as JSON for client JS to reuse without re-fetching
     html = html.replace(
       '<script src="/js/article.js"></script>',
-      `<script>window.__SSR_ARTICLE__ = ${JSON.stringify(article)};</script>\n<script src="/js/article.js"></script>`
+      `<script>window.__SSR_ARTICLE__ = ${JSON.stringify(article)}; window.__SSR_RELATED__ = ${JSON.stringify(related)};</script>\n<script src="/js/article.js"></script>`
     );
 
     res.send(html);
