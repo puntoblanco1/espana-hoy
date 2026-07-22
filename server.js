@@ -596,6 +596,9 @@ app.get('/category/:cat', (req, res) => {
       `<meta name="description" id="page-desc" content="${catDesc}. أحدث ${allArticles.length} مقال ودليل شامل في قسم ${catLabel} على إسبانيا اليوم.">`
     );
     html = html.replace('</head>', `  <link rel="canonical" href="${baseUrl}/category/${catSlug}">\n</head>`);
+    html = html.replace('<meta property="og:title" id="og-title" content="">', `<meta property="og:title" id="og-title" content="${catLabel} — إسبانيا اليوم">`);
+    html = html.replace('<meta property="og:description" id="og-desc" content="">', `<meta property="og:description" id="og-desc" content="${catDesc}">`);
+    html = html.replace('<meta property="og:url" id="og-url" content="">', `<meta property="og:url" id="og-url" content="${baseUrl}/category/${catSlug}">`);
 
     // ---- Category header ----
     html = html.replace('<span id="cat-breadcrumb">التصنيف</span>', `<span id="cat-breadcrumb">${catLabel}</span>`);
