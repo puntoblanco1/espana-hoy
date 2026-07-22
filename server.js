@@ -11,7 +11,7 @@ app.get('/ads.txt', (req, res) => {
   res.send('google.com, pub-1741541929933036, DIRECT, f08c47fec0942fa0\n');
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // ============================================================
 // DATABASE
