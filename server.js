@@ -684,7 +684,15 @@ function ssrReadTime(a) {
   const t = a.contentAr || a.content || a.arabic_content || '';
   return Math.max(2, Math.ceil(t.split(/\s+/).length / 200));
 }
-function ssrImgUrl(a) { return a.image || a.image_url || a.imageUrl || ''; }
+function ssrImgUrl(a) {
+  const raw = a.image || a.image_url || a.imageUrl || '';
+  if (!raw) return '';
+  // Upgrade Unsplash images to at least 1200px width for Google Large Image Preview eligibility
+  if (raw.includes('images.unsplash.com')) {
+    return raw.replace(/([?&])w=\d+/, '$1w=1200');
+  }
+  return raw;
+}
 
 function findArticleBySlug(db, slug) {
   const list = db.articles || [];
