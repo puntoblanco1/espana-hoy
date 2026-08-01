@@ -235,6 +235,15 @@ function renderArticle(a) {
 
     <div class="article-body">${formatContent(content)}</div>
 
+    ${(a.sourceUrl || (a.source && a.source !== 'evergreen')) ? `
+    <div class="article-source-note" style="margin:24px 0;padding:14px 18px;background:var(--bg-card);border-inline-start:3px solid var(--primary);border-radius:8px;font-size:13.5px;color:var(--text-light);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <i class="fas fa-link"></i>
+      <span>المصدر الأصلي:</span>
+      ${a.sourceUrl
+        ? `<a href="${a.sourceUrl}" target="_blank" rel="noopener noreferrer nofollow" style="color:var(--primary);font-weight:700">${escHtml(a.source || 'رابط المصدر')}</a>`
+        : `<strong>${escHtml(a.source)}</strong>`}
+    </div>` : ''}
+
     ${tagsHtml}
 
     <div class="share-bar">
@@ -649,6 +658,10 @@ function injectSchema(a) {
     "articleSection": catLabel,
     "keywords": (a.tags || []).join(', ')
   };
+
+  if (a.sourceUrl) {
+    articleSchema.isBasedOn = a.sourceUrl;
+  }
   if (image) {
     articleSchema.image = {
       "@type": "ImageObject",
